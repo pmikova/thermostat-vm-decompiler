@@ -22,7 +22,6 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.osgi.service.component.ComponentContext;
 
 /**
  *
@@ -61,28 +60,16 @@ public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
     public VmDecompilerDAOImpl() {
         // Default constructor for DS
     }
+    @Activate
+    private void activate() {
+        storage.registerCategory(VM_DECOMPILER_STATUS_CATEGORY);
+    }
 
     public VmDecompilerDAOImpl(Storage storage) {
         this.storage = storage;
 
-    }
-    /*
-    @Activate
-    private void activate() {
-        storage.registerCategory(VM_DECOMPILER_STATUS_CATEGORY);
-
-    }*/
-    protected void activate(ComponentContext context)
-    {
-        storage.registerCategory(VM_DECOMPILER_STATUS_CATEGORY);
-        
-    }
+    }      
     
-     protected void deactivate(ComponentContext context)
-    {
-        //
-    }
-
     @Override
     protected Logger getLogger() {
         return LoggingUtils.getLogger(VmDecompilerDAOImpl.class);
