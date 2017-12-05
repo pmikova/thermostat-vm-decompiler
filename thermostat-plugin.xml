@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<plugin xmlns="http://icedtea.classpath.org/thermostat/plugins/v1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://icedtea.classpath.org/thermostat/plugins/v1.0 http://icedtea.classpath.org/thermostat/docs/1.0/thermostat-plugin.xsd">
+ <commands>
+    <command>
+            <name>decompile-something</name>
+            <summary>not-working</summary>
+            <description>
+            this is an example command that is not working properly
+            </description>
+            <command-groups>
+                <command-group>vm-instrumentation</command-group>
+            </command-groups>            
+            <options>
+              <option>
+                <long>vmId</long>
+                <short>v</short>
+                <argument>vm</argument>
+                <required>true</required>
+                <description>the ID of the VM to decompile</description>
+              </option>
+            </options>
+            <environments>
+                <environment>cli</environment>
+                <environment>shell</environment>
+            </environments>
+      <bundles>
+		<bundle>
+		<symbolic-name>com.redhat.thermostat.vm.decompiler</symbolic-name>
+		<version>1.99.12-SNAPSHOT</version>
+	  </bundle>
+      </bundles>
+    </command>
+</commands>
+<extensions>
+        <extension>
+            <name>gui</name>
+            <bundles>
+                <bundle>
+					<symbolic-name>com.redhat.thermostat.vm.decompiler</symbolic-name>
+					<version>1.99.12-SNAPSHOT</version>
+	        	</bundle>
+            </bundles>
+        </extension>
+    </extensions>
+</plugin>
