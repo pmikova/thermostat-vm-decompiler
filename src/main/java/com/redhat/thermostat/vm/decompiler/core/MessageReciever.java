@@ -10,7 +10,6 @@ import com.redhat.thermostat.agent.ipc.server.IPCMessage;
 import com.redhat.thermostat.agent.ipc.server.ThermostatIPCCallbacks;
 import com.redhat.thermostat.common.utils.LoggingUtils;
 import java.util.logging.Logger;
-import java.nio.ByteBuffer;
 
 
 /**

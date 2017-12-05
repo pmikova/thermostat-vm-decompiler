@@ -13,9 +13,11 @@ package com.redhat.thermostat.vm.decompiler.swing;
 
 //import com.redhat.thermostat.client.swing.internal.views.SwingVmInformationViewProvider;
 
+import com.redhat.thermostat.client.core.views.BasicView;
 import com.redhat.thermostat.client.core.views.UIComponent;
 import com.redhat.thermostat.client.swing.SwingComponent;
 import com.redhat.thermostat.client.swing.components.HeaderPanel;
+import com.redhat.thermostat.client.swing.internal.views.SwingVmInformationViewProvider;
 import com.redhat.thermostat.shared.locale.LocalizedString;
 import com.redhat.thermostat.shared.locale.Translate;
 import java.awt.BorderLayout;
@@ -34,7 +36,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
-public class BytecodeDecompilerView /*extends SwingVmInformationViewProvider*/ implements SwingComponent, UIComponent {
+public class BytecodeDecompilerView extends BasicView implements SwingComponent, UIComponent {
 
     private JPanel guiMainFrame;
     private final CopyOnWriteArrayList<com.redhat.thermostat.common.ActionListener<DoActionClasses>> doListeners = new CopyOnWriteArrayList<>();

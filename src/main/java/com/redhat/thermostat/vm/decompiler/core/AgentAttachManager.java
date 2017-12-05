@@ -11,8 +11,10 @@ import com.redhat.thermostat.common.portability.ProcessUserInfoBuilder;
 import com.redhat.thermostat.vm.decompiler.core.VmDecompilerStatus;
 import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAOImpl;
 import com.redhat.thermostat.common.utils.LoggingUtils;
+import com.redhat.thermostat.shared.config.CommonPaths;
 import com.redhat.thermostat.storage.core.VmId;
 import com.redhat.thermostat.storage.core.WriterID;
+import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAO;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.attribute.UserPrincipal;
@@ -36,7 +38,7 @@ public class AgentAttachManager {
     private WriterID writerId;
     private ProcessUserInfoBuilder userInfoBuilder;
     private AgentInfo agent;
-    private VmDecompilerDAOImpl vmDecompilerDao;
+    private VmDecompilerDAO vmDecompilerDao;
 
     public AgentInfo getAgent(){
         return this.agent;
@@ -48,13 +50,34 @@ public class AgentAttachManager {
 
     //SHOULD NOT BE NECCESSARY
     AgentAttachManager(AgentLoader loader, IPCManager ipcManager, 
-                              WriterID writerId, ProcessUserInfoBuilder userInfoBuilder, FileSystemUtils fsUtils, VmDecompilerDAOImpl vmDecompilerDao) {
+                              WriterID writerId, ProcessUserInfoBuilder userInfoBuilder, FileSystemUtils fsUtils, VmDecompilerDAO vmDecompilerDao) {
         this.loader = loader;
         this.ipcManager = ipcManager;
         this.writerId = writerId;
         this.userInfoBuilder = userInfoBuilder;
         this.fsUtils = fsUtils;
         this.vmDecompilerDao = vmDecompilerDao;
+    }
+    
+     void setAttacher(AgentLoader attacher) {
+        this.loader = attacher;
+    }
+
+
+    void setIpcManager(IPCManager ipcManager) {
+        this.ipcManager = ipcManager;
+    }
+
+    void setVmDecompilerDao(VmDecompilerDAO vmDecompilerDao) {
+        this.vmDecompilerDao = vmDecompilerDao;
+    }
+
+    void setWriterId(WriterID writerId) {
+        this.writerId = writerId;
+    }
+
+    void setUserInfoBuilder(ProcessUserInfoBuilder userInfoBuilder) {
+        this.userInfoBuilder = userInfoBuilder;
     }
 
     VmDecompilerStatus attachAgentToVm(VmId vmId, int vmPid) throws Exception {
@@ -99,9 +122,6 @@ public class AgentAttachManager {
         return principal;
     }
 
-    void setUserInfoBuilder(ProcessUserInfoBuilder userInfoBuilder) {
-        this.userInfoBuilder = userInfoBuilder;
-    }
     
 
     static class FileSystemUtils {

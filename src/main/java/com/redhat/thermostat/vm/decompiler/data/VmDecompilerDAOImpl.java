@@ -11,7 +11,6 @@ import com.redhat.thermostat.storage.core.Key;
 import com.redhat.thermostat.storage.core.PreparedStatement;
 import com.redhat.thermostat.storage.core.Storage;
 import com.redhat.thermostat.storage.core.VmId;
-import com.redhat.thermostat.storage.core.WriterID;
 import com.redhat.thermostat.storage.dao.AbstractDao;
 import com.redhat.thermostat.storage.dao.AbstractDaoQuery;
 import com.redhat.thermostat.storage.dao.AbstractDaoStatement;
@@ -19,9 +18,11 @@ import com.redhat.thermostat.storage.dao.AbstractDaoStatement;
 import com.redhat.thermostat.vm.decompiler.core.VmDecompilerStatus;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.ComponentContext;
 
 /**
  *
@@ -30,6 +31,7 @@ import org.apache.felix.scr.annotations.Service;
 @Component
 @Service(value = VmDecompilerDAO.class)
 public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
+     
      
     static final Key<Integer> PORT = new Key<>("listenPort");
     //static final Key<StoreJvmInfo> STORE_JVM_INFO = new Key<>("storeJvmInfo");
@@ -62,8 +64,23 @@ public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
 
     public VmDecompilerDAOImpl(Storage storage) {
         this.storage = storage;
+
+    }
+    /*
+    @Activate
+    private void activate() {
         storage.registerCategory(VM_DECOMPILER_STATUS_CATEGORY);
 
+    }*/
+    protected void activate(ComponentContext context)
+    {
+        storage.registerCategory(VM_DECOMPILER_STATUS_CATEGORY);
+        
+    }
+    
+     protected void deactivate(ComponentContext context)
+    {
+        //
     }
 
     @Override

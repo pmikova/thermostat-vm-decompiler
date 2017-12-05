@@ -8,7 +8,6 @@ package com.redhat.thermostat.vm.decompiler.swing;
 
 import com.redhat.thermostat.storage.core.VmId;
 import com.redhat.thermostat.storage.core.VmRef;
-import com.redhat.thermostat.storage.model.AgentInformation;
 import com.redhat.thermostat.storage.model.VmInfo;
 import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;

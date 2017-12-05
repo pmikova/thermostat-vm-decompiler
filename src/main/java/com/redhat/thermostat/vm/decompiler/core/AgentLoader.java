@@ -43,6 +43,9 @@ public class AgentLoader {
         this.processChecker = processChecker;
         this.ipcService = ipcService;
     }
+     AgentLoader(AgentIPCService ipcProps) {
+        this(new AgentInstallHelper(), new ProcessChecker(), ipcProps);
+    }
 
     public AgentInfo attach(String vmId, int pid, String agentId) throws Exception {
         int port = findPort();
