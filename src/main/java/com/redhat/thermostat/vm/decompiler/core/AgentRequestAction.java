@@ -55,11 +55,12 @@ public class AgentRequestAction {
     }
     public static final String VM_ID_PARAM_NAME = "vm-id";
     public static final String VM_PID_PARAM_NAME = "vm-pid";
-    public static final String ACTION_PARAM_NAME = com.redhat.thermostat.common.command.Request.ACTION;
+    public static final String ACTION_PARAM_NAME = "action";
     public static final String LISTEN_PORT_PARAM_NAME = "listen-port";
     public static final int NOT_ATTACHED_PORT = -1;
     public static final String CLASS_TO_DECOMPILE_NAME = "class-to-decompile";
-
+    private static final String CMD_CHANN_ACTION_NAME = "vm-decompiler-get-bytecode";
+    
     private static final String RECEIVER = "com.redhat.thermostat.vm.decompiler.core.DecompilerRequestReciever";
 
     public static Request create(InetSocketAddress address, VmInfo vmInfo, RequestAction action, int listenPort, String name) {
@@ -71,6 +72,7 @@ public class AgentRequestAction {
     public static Request create(InetSocketAddress address, VmInfo vmInfo, RequestAction action, int listenPort) {
         Request req = new Request(Request.RequestType.RESPONSE_EXPECTED, address);
         req.setReceiver(RECEIVER);
+        req.setParameter(Request.ACTION, CMD_CHANN_ACTION_NAME);
         req.setParameter(VM_ID_PARAM_NAME, vmInfo.getVmId());
         req.setParameter(VM_PID_PARAM_NAME, Integer.toString(vmInfo.getVmPid()));
         req.setParameter(ACTION_PARAM_NAME, action.toIntString());
