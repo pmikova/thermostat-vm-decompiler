@@ -11,16 +11,15 @@ import com.redhat.thermostat.vm.decompiler.communication.CallNativeAgent;
 import com.redhat.thermostat.common.utils.LoggingUtils;
 import com.redhat.thermostat.common.command.Request;
 import com.redhat.thermostat.common.command.Response;
+import com.redhat.thermostat.common.command.Response.ResponseType;
 import com.redhat.thermostat.common.portability.ProcessUserInfoBuilder;
 import com.redhat.thermostat.common.portability.ProcessUserInfoBuilderFactory;
 import com.redhat.thermostat.common.portability.UserNameUtil;
 import com.redhat.thermostat.common.portability.linux.ProcDataSource;
-import com.redhat.thermostat.shared.config.CommonPaths;
 import com.redhat.thermostat.storage.core.VmId;
 import com.redhat.thermostat.storage.core.WriterID;
 import com.redhat.thermostat.vm.decompiler.core.AgentRequestAction.RequestAction;
 import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAO;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,17 +34,17 @@ import org.apache.felix.scr.annotations.Service;
  */
 @Component
 @Service(value = RequestReceiver.class)
-@Property(name = "servicename", value = "com.redhat.thermostat.vm.decompiler.core.AgentRequestReciever")
+@Property(name = "servicename", value = "com.redhat.thermostat.vm.decompiler.core.DecompilerRequestReciever")
 
-public class AgentRequestReciever implements RequestReceiver {
+public class DecompilerRequestReciever implements RequestReceiver {
 
-    private static final Logger logger = LoggingUtils.getLogger(AgentRequestReciever.class);
+    private static final Logger logger = LoggingUtils.getLogger(DecompilerRequestReciever.class);
     
     private final AgentAttachManager attachManager;
     
 
-    private static final Response ERROR_RESPONSE = new Response(Response.ResponseType.ERROR);
-    private static final Response OK_RESPONSE = new Response(Response.ResponseType.OK);
+    private static final Response ERROR_RESPONSE = new Response(ResponseType.ERROR);
+    private static final Response OK_RESPONSE = new Response(ResponseType.OK);
 
     @Reference
     private VmDecompilerDAO vmDecompilerDao;
@@ -58,12 +57,12 @@ public class AgentRequestReciever implements RequestReceiver {
     @Reference
     private UserNameUtil userNameUtil;
 
-    public AgentRequestReciever() {
+    public DecompilerRequestReciever() {
         this(new AgentAttachManager());
     }
     
     
-    public AgentRequestReciever(AgentAttachManager attachManager) {
+    public DecompilerRequestReciever(AgentAttachManager attachManager) {
         this.attachManager = new AgentAttachManager();
     }
 
@@ -90,14 +89,6 @@ public class AgentRequestReciever implements RequestReceiver {
         attachManager.setVmDecompilerDao(null);
     }
     
-    protected void bindCommonPaths(CommonPaths paths) {
-        //nothing to bind
-    }
-    
-    protected void unbindCommonPaths(CommonPaths paths) {
-        // helper jars don't strictly need unsetting so we don't
-        // call setPaths(null)
-    }
     
     protected void bindAgentIpcService(AgentIPCService ipcService) {
         IPCManager ipcEndpointsManager = new IPCManager(ipcService);
@@ -119,16 +110,14 @@ public class AgentRequestReciever implements RequestReceiver {
     protected void unbindUserNameUtil(UserNameUtil userNameUtil) {
         attachManager.setUserInfoBuilder(null);
     }
-    
+   
     //END DS
     @Override
-    public Response receive(Request request) {
-
+    public Response receive(Request request) {        
         String vmId = request.getParameter(AgentRequestAction.VM_ID_PARAM_NAME);
         String actionStr = request.getParameter(AgentRequestAction.ACTION_PARAM_NAME);
         String portStr = request.getParameter(AgentRequestAction.LISTEN_PORT_PARAM_NAME);
         String vmPidStr = request.getParameter(AgentRequestAction.VM_PID_PARAM_NAME);
-        
         RequestAction action;
         int vmPid;
         int port;
@@ -144,7 +133,6 @@ public class AgentRequestReciever implements RequestReceiver {
 
         logger.fine("Processing request for vmId: " + vmId + ", pid: " + vmPid + ", Action: " + action + ", port: " + portStr);
         Response response;
-
         switch (action) {
             case BYTES:
                 String className = request.getParameter(AgentRequestAction.CLASS_TO_DECOMPILE_NAME);
@@ -190,8 +178,8 @@ public class AgentRequestReciever implements RequestReceiver {
 
             }
             byte[] byteArray = parseBytes(bytes);
-            StoreJvmInfo storage = vmDecompilerDao.getVmDecompilerStatus(vmId).getStorage();
-            storage.addClassBytes(className, byteArray);
+            
+            //vmDecompilerDao.getVmDecompilerStatus(vmId).addClassBytes(className, byteArray);
         } catch (Exception ex) {
             return ERROR_RESPONSE;
         }
@@ -215,12 +203,12 @@ public class AgentRequestReciever implements RequestReceiver {
         CallNativeAgent nativeAgent = new CallNativeAgent(vmPid);
         try {
             String classes = nativeAgent.submitRequest("CLASSES");
+            
             if (classes == "ERROR") {
                 return ERROR_RESPONSE;
             }
-            ArrayList<String> arrayOfClasses = parseClasses(classes);
-            StoreJvmInfo storage = vmDecompilerDao.getVmDecompilerStatus(vmId).getStorage();
-            storage.setClassNames(arrayOfClasses);
+           String[] arrayOfClasses = parseClasses(classes);;
+           vmDecompilerDao.getVmDecompilerStatus(vmId).setClassNames(arrayOfClasses);
 
         } catch (Exception ex) {
             return ERROR_RESPONSE;
@@ -241,16 +229,10 @@ public class AgentRequestReciever implements RequestReceiver {
         return actualListenPort;
     }
 
-    private ArrayList<String> parseClasses(String classes) throws Exception {
+    private String[] parseClasses(String classes) throws Exception {
 
-        ArrayList<String> builder = new ArrayList<>();
         String[] array = classes.split(";");
-        for (String clazz : array) {
-            clazz = clazz.trim();
-            builder.add(clazz);
-
-        }
-        return builder;
+        return array;
     }
     
     private byte[] parseBytes(String bytes) {
