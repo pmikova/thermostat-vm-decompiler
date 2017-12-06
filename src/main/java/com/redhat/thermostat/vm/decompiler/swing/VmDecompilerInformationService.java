@@ -14,7 +14,7 @@ import com.redhat.thermostat.common.Ordered;
 import com.redhat.thermostat.storage.core.VmRef;
 import com.redhat.thermostat.storage.dao.AgentInfoDAO;
 import com.redhat.thermostat.storage.dao.VmInfoDAO;
-import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAOImpl;
+import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAO;
 import com.redhat.thermostat.vm.decompiler.internal.SwingVmDecompilerViewProvider;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,7 +42,7 @@ public class VmDecompilerInformationService implements InformationService<VmRef>
 @Reference
     private VmInfoDAO vmInfoDao;
 @Reference
-    private VmDecompilerDAOImpl vmDecompilerDao;
+    private VmDecompilerDAO vmDecompilerDao;
 @Reference
     private RequestQueue requestQueue;
 

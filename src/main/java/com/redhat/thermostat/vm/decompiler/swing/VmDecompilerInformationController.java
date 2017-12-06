@@ -24,7 +24,7 @@ import com.redhat.thermostat.shared.locale.Translate;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAOImpl;
+import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAO;
 import com.redhat.thermostat.vm.decompiler.core.VmDecompilerStatus;
 import java.util.concurrent.TimeUnit;
 
@@ -49,18 +49,18 @@ public class VmDecompilerInformationController implements InformationServiceCont
     private final AgentInfoDAO agentInfoDao;
     private final VmInfoDAO vmInfoDao;
     private final RequestQueue requestQueue;
-    private final VmDecompilerDAOImpl vmDecompilerDao;
+    private final VmDecompilerDAO vmDecompilerDao;
     private final BytecodeDecompilerView view;
     private static final Translate<LocaleResources> translateResources = LocaleResources.createLocalizer();
     private String decompilerPath = "/home/pmikova/Desktop/procyon-decompiler-0.5.30.jar";
 
     VmDecompilerInformationController(VmRef ref, AgentInfoDAO agentInfoDao,
-            VmInfoDAO vmInfo, VmDecompilerDAOImpl vmDecompilerDao,
+            VmInfoDAO vmInfo, VmDecompilerDAO vmDecompilerDao,
             RequestQueue requestQueue) {
         this(new BytecodeDecompilerView(), ref, agentInfoDao, vmInfo, vmDecompilerDao, requestQueue);
     }
 
-    VmDecompilerInformationController(BytecodeDecompilerView view, VmRef ref, AgentInfoDAO agentInfoDao, VmInfoDAO vmInfoDao, VmDecompilerDAOImpl vmDecompilerDao, RequestQueue requestQueue) {
+    VmDecompilerInformationController(BytecodeDecompilerView view, VmRef ref, AgentInfoDAO agentInfoDao, VmInfoDAO vmInfoDao, VmDecompilerDAO vmDecompilerDao, RequestQueue requestQueue) {
         this.vm = ref;
         this.agentInfoDao = agentInfoDao;
         this.vmInfoDao = vmInfoDao;
