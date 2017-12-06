@@ -17,7 +17,6 @@ import com.redhat.thermostat.client.core.views.BasicView;
 import com.redhat.thermostat.client.core.views.UIComponent;
 import com.redhat.thermostat.client.swing.SwingComponent;
 import com.redhat.thermostat.client.swing.components.HeaderPanel;
-import com.redhat.thermostat.client.swing.internal.views.SwingVmInformationViewProvider;
 import com.redhat.thermostat.shared.locale.LocalizedString;
 import com.redhat.thermostat.shared.locale.Translate;
 import java.awt.BorderLayout;
@@ -32,9 +31,11 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.border.EtchedBorder;
 
 public class BytecodeDecompilerView extends BasicView implements SwingComponent, UIComponent {
 
@@ -60,6 +61,8 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
 
         
         listOfClasses = new JList<>();
+        listOfClasses.setFixedCellHeight(20);
+        listOfClasses.setListData(new String[]{"Click button above marked", "refresh loaded class list", "in order to start."});
 
         listOfClasses.addMouseListener(new MouseAdapter() {
             @Override
@@ -82,11 +85,17 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
         }
         );
 
-        byteCodeArea = new JTextArea(300, 300);
+        byteCodeArea = new JTextArea();
 
         leftMainPanel = new JPanel();
+        leftMainPanel.setLayout(new BorderLayout());
+        leftMainPanel.setBorder(new EtchedBorder());
+        
         JPanel topButtonPanel = new JPanel();
+        
         rightMainPanel = new JPanel();
+        rightMainPanel.setLayout(new BorderLayout());
+        rightMainPanel.setBorder(new EtchedBorder());
 
         topButtonPanel.setLayout(new BorderLayout());
         topButtonPanel.add(topButton, BorderLayout.WEST);
@@ -96,10 +105,11 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
 
         leftMainPanel.add(listOfClasses);
         rightMainPanel.add(byteCodeArea);
+        JSplitPane pane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, 
+                                  leftMainPanel, rightMainPanel );
 
         guiMainFrame.add(topButtonPanel, BorderLayout.NORTH);
-        guiMainFrame.add(leftScrollPanel, BorderLayout.WEST);
-        guiMainFrame.add(rightScrollPanel, BorderLayout.EAST);
+        guiMainFrame.add(pane, BorderLayout.CENTER);
 
         guiMainFrame.setVisible(true);
 
@@ -158,9 +168,7 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
     public enum DoActionBytes{
         BYTES,
     }
-    
-    
-    
+        
     public abstract class GetBytesActionEventActionListener implements com.redhat.thermostat.common.ActionListener<DoActionBytes> {
         String eventClassName;
 
@@ -175,9 +183,7 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
         
         public void setEventClassName(String name){
             this.eventClassName = name; 
-        }
-        
-        
+        } 
         
     }
 
