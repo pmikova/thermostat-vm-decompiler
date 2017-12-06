@@ -55,7 +55,7 @@ public class AgentRequestAction {
     }
     public static final String VM_ID_PARAM_NAME = "vm-id";
     public static final String VM_PID_PARAM_NAME = "vm-pid";
-    public static final String ACTION_PARAM_NAME = "agent-action";
+    public static final String ACTION_PARAM_NAME = com.redhat.thermostat.common.command.Request.ACTION;
     public static final String LISTEN_PORT_PARAM_NAME = "listen-port";
     public static final int NOT_ATTACHED_PORT = -1;
     public static final String CLASS_TO_DECOMPILE_NAME = "class-to-decompile";
