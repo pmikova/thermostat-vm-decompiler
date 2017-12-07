@@ -42,12 +42,13 @@ public class DecompilerRequestReciever implements RequestReceiver {
     
     private final AgentAttachManager attachManager;
     
-
     private static final Response ERROR_RESPONSE = new Response(ResponseType.ERROR);
     private static final Response OK_RESPONSE = new Response(ResponseType.OK);
+    private static final int NOT_ATTACHED = -1;
 
     @Reference
     private VmDecompilerDAO vmDecompilerDao;
+    
     @Reference
     private WriterID writerId;
     
@@ -133,7 +134,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
 
         logger.fine("Processing request for vmId: " + vmId + ", pid: " + vmPid + ", Action: " + action + ", port: " + portStr);
         Response response;
-        switch (action) {
+        switch (action) {            
             case BYTES:
                 String className = request.getParameter(AgentRequestAction.CLASS_TO_DECOMPILE_NAME);
                 response = getByteCodeAction(port, new VmId(vmId), vmPid, className);
@@ -154,7 +155,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
             return Integer.parseInt(intStr);
         } catch (NumberFormatException e) {
             logger.log(Level.WARNING, msg + " Param was '" + intStr + "'", e);
-            return -1;
+            return NOT_ATTACHED;
         }
     }
 
@@ -166,7 +167,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
             logger.log(Level.WARNING, "Failed to attach agent.");
             return ERROR_RESPONSE;
         }
-        if (actualListenPort == -1) {
+        if (actualListenPort == NOT_ATTACHED) {
             logger.log(Level.WARNING, "Failed to attach agent.");
             return ERROR_RESPONSE;
         }
@@ -178,8 +179,13 @@ public class DecompilerRequestReciever implements RequestReceiver {
 
             }
             byte[] byteArray = parseBytes(bytes);
+            VmDecompilerStatus status = new VmDecompilerStatus(writerId.getWriterID());
+            status.setListenPort(listenPort);
+            status.setTimeStamp(System.currentTimeMillis());
+            status.setVmId(vmId.get());
+            status.addClassBytes(byteArray);
+            vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
             
-            //vmDecompilerDao.getVmDecompilerStatus(vmId).addClassBytes(className, byteArray);
         } catch (Exception ex) {
             return ERROR_RESPONSE;
         }
@@ -195,8 +201,8 @@ public class DecompilerRequestReciever implements RequestReceiver {
         } catch (Exception ex) {
             return ERROR_RESPONSE;
         }
-
-        if (actualListenPort == -1) {
+                
+        if (actualListenPort == NOT_ATTACHED) {  
             logger.log(Level.WARNING, "Failed to call Agent.");
             return ERROR_RESPONSE;
         }
@@ -208,7 +214,12 @@ public class DecompilerRequestReciever implements RequestReceiver {
                 return ERROR_RESPONSE;
             }
            String[] arrayOfClasses = parseClasses(classes);;
-           vmDecompilerDao.getVmDecompilerStatus(vmId).setClassNames(arrayOfClasses);
+            VmDecompilerStatus status = new VmDecompilerStatus(writerId.getWriterID());
+            status.setListenPort(listenPort);
+            status.setTimeStamp(System.currentTimeMillis());
+            status.setVmId(vmId.get());
+            status.setClassNames(arrayOfClasses);
+            vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
 
         } catch (Exception ex) {
             return ERROR_RESPONSE;
@@ -217,13 +228,15 @@ public class DecompilerRequestReciever implements RequestReceiver {
 
     }
 
-    private int checkIfAgentIsLoaded(int port, VmId vmId, int vmPid) throws Exception {
-        int actualListenPort = port;
+    private int checkIfAgentIsLoaded(int port, VmId vmId, int vmPid) {
+        if (port != NOT_ATTACHED){
+            return port;
+        }
+        int actualListenPort = NOT_ATTACHED;
         VmDecompilerStatus status = attachManager.attachAgentToVm(vmId, vmPid);
         if (status != null) {
-            actualListenPort = vmDecompilerDao.getVmDecompilerStatus(vmId).getListenPort();
+            actualListenPort = status.getListenPort();
         }
-        AgentInfo agent = attachManager.getAgent();
         
 
         return actualListenPort;
