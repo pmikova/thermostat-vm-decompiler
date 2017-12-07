@@ -5,7 +5,6 @@
  */
 package com.redhat.thermostat.vm.decompiler.core;
 
-import com.redhat.thermostat.vm.decompiler.communication.InstallAgent;
 import com.redhat.thermostat.agent.ipc.server.AgentIPCService;
 import com.redhat.thermostat.common.portability.ProcessChecker;
 import com.redhat.thermostat.common.utils.LoggingUtils;
@@ -19,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.jboss.byteman.agent.install.Install;
 
 /**
  *
@@ -34,7 +35,7 @@ public class AgentLoader {
     private final ProcessChecker processChecker;
     private final AgentIPCService ipcService;
     private static final String AGENT_LOADED_PROPERTY = "com.redhat.decompiler.thermostat.loaded";
-    private static final String AGENT_PORT_PROPERTY = "com.redhat.decompiler.thermostat..port";
+    private static final String AGENT_PORT_PROPERTY = "com.redhat.decompiler.thermostat.port";
     private static final String IPC_CONFIG_NAME_PROPERTY = "com.redhat.decompiler.thermostat.ipcConfig";
     private static final String HELPER_SOCKET_NAME_PROPERTY = "com.redhat.decompiler.thermostat.socketName";
 
@@ -111,17 +112,28 @@ public class AgentLoader {
 
         private static final int UNKNOWN_PORT = -1;
 
-        AgentLoader.InstallResult install(String vmPid, boolean addToBoot, boolean setPolicy, String hostname, int port, String[] properties)
-                throws IllegalArgumentException, FileNotFoundException,
-                IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
-            String propVal = InstallAgent.getProperty(vmPid, AGENT_LOADED_PROPERTY);
+        AgentLoader.InstallResult install(String vmPid, boolean addToBoot, boolean setPolicy, String hostname, int port, String[] properties) 
+                 {
+            String propVal = Install.getSystemProperty(vmPid, AGENT_LOADED_PROPERTY);
             boolean loaded = Boolean.parseBoolean(propVal);
             if (!loaded) {
-                InstallAgent.install(vmPid, addToBoot, hostname, port, properties);
+                try {
+                    Install.install(vmPid, addToBoot, hostname, port, properties);
+                } catch (IllegalArgumentException ex) {
+                    Logger.getLogger(AgentLoader.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(AgentLoader.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (AttachNotSupportedException ex) {
+                    Logger.getLogger(AgentLoader.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (AgentLoadException ex) {
+                    Logger.getLogger(AgentLoader.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (AgentInitializationException ex) {
+                    Logger.getLogger(AgentLoader.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 return new AgentLoader.InstallResult(port, false);
             } else {
                 try {
-                    int oldPort = Integer.parseInt(InstallAgent.getProperty(vmPid, AGENT_PORT_PROPERTY));
+                    int oldPort = Integer.parseInt(Install.getSystemProperty(vmPid, AGENT_PORT_PROPERTY));
                     logger.finest("VM (pid: " + vmPid + "): Not installing agent since one is already attached on port "+ oldPort);
                     return new AgentLoader.InstallResult(oldPort, true);
                 } catch (NumberFormatException e) {

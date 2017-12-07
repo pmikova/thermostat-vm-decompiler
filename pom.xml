@@ -121,5 +121,14 @@
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.jboss.byteman</groupId>
+            <artifactId>byteman-install</artifactId>
+            <version>${byteman.version}</version>
+        </dependency>
+        <!-- <dependency>
+          <groupId>org.jfree</groupId>
+          <artifactId>jfreechart</artifactId>
+        </dependency>-->
     </dependencies>
 </project>
