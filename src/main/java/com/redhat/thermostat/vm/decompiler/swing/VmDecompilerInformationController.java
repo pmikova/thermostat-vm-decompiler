@@ -30,6 +30,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.redhat.thermostat.client.command.RequestQueue;
 import com.redhat.thermostat.common.command.Request;
+import com.redhat.thermostat.storage.core.AgentId;
+import com.redhat.thermostat.storage.model.AgentInformation;
 import com.redhat.thermostat.vm.decompiler.core.NativeAgentRequestResponseListener;
 import com.redhat.thermostat.vm.decompiler.swing.BytecodeDecompilerView.DoActionBytes;
 import com.redhat.thermostat.vm.decompiler.swing.BytecodeDecompilerView.DoActionClasses;
@@ -60,7 +62,7 @@ public class VmDecompilerInformationController implements InformationServiceCont
         this(new BytecodeDecompilerView(), ref, agentInfoDao, vmInfo, vmDecompilerDao, requestQueue);
     }
 
-    VmDecompilerInformationController(BytecodeDecompilerView view, VmRef ref, AgentInfoDAO agentInfoDao, VmInfoDAO vmInfoDao, VmDecompilerDAO vmDecompilerDao, RequestQueue requestQueue) {
+    VmDecompilerInformationController(final BytecodeDecompilerView view, VmRef ref, AgentInfoDAO agentInfoDao, VmInfoDAO vmInfoDao, VmDecompilerDAO vmDecompilerDao, RequestQueue requestQueue) {
         this.vm = ref;
         this.agentInfoDao = agentInfoDao;
         this.vmInfoDao = vmInfoDao;
@@ -105,13 +107,13 @@ public class VmDecompilerInformationController implements InformationServiceCont
     
 
     private NativeAgentRequestResponseListener loadClassNames() {
-        Request request = createRequest(null, RequestAction.CLASSES);
+        Request request = createRequest("", RequestAction.CLASSES);
         NativeAgentRequestResponseListener listener = submitRequest(request);
         boolean success = !listener.isError();
         if (success) {
             VmId vmId = new VmId(vm.getVmId());
             VmDecompilerStatus vmStatus = vmDecompilerDao.getVmDecompilerStatus(vmId);
-            String[] classes = vmStatus.getStorage().getClassNames().toArray(new String[]{});
+            String[] classes = vmStatus.getClassNames();
             view.reloadClassList(classes);
         } else {
             view.handleError(new LocalizedString(listener.getErrorMessage()));
@@ -128,7 +130,8 @@ public class VmDecompilerInformationController implements InformationServiceCont
 
             VmId vmId = new VmId(vm.getVmId());
             VmDecompilerStatus vmStatus = vmDecompilerDao.getVmDecompilerStatus(vmId);
-            byte[] bytes = vmStatus.getStorage().getClassBytes(name);
+            //byte[] bytes = vmStatus.getClassBytes(name);
+            byte[] bytes = new byte[]{};
             try {
                 String path = bytesToFile(name, bytes);
                 Process proc = Runtime.getRuntime().exec("java -jar " + decompilerPath + " " + path);
@@ -159,7 +162,7 @@ public class VmDecompilerInformationController implements InformationServiceCont
         }
         
         InetSocketAddress address = agentInfoDao.getAgentInformation(vm.getHostRef()).getRequestQueueAddress();
-        Request request = null;
+        Request request;
         if (action == RequestAction.CLASSES) {
             request = AgentRequestAction.create(address, vmInfo, action, listenPort);
         } else if (action == RequestAction.BYTES) {
