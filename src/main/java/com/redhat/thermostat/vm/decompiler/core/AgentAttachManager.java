@@ -80,14 +80,19 @@ public class AgentAttachManager {
         this.userInfoBuilder = userInfoBuilder;
     }
 
-    VmDecompilerStatus attachAgentToVm(VmId vmId, int vmPid) throws Exception {
+    VmDecompilerStatus attachAgentToVm(VmId vmId, int vmPid)  {
         logger.fine("Attaching agent to VM '" + vmPid + "'");
         // Fail early if we can't determine process owner
         UserPrincipal owner = getUserPrincipalForPid(vmPid);
         if (owner == null) {
             return null;
         }
-        AgentInfo info = loader.attach(vmId.get(), vmPid, writerId.getWriterID());
+        AgentInfo info  = null;
+        try {
+            info = loader.attach(vmId.get(), vmPid, writerId.getWriterID());
+        } catch (Exception ex) {
+            Logger.getLogger(AgentAttachManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
         if (info == null) {
             logger.warning("Failed to attach agent for VM '" + vmPid + "'. Skipping IPC channel.");
             return null;
@@ -100,7 +105,6 @@ public class AgentAttachManager {
         VmDecompilerStatus status = new VmDecompilerStatus(writerId.getWriterID());
         status.setListenPort(info.getAgentListenPort());
         status.setVmId(vmId.get());
-        this.agent = info;
         vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
         return status;
     }

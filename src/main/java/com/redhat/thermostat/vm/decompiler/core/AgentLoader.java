@@ -8,18 +8,16 @@ package com.redhat.thermostat.vm.decompiler.core;
 import com.redhat.thermostat.agent.ipc.server.AgentIPCService;
 import com.redhat.thermostat.common.portability.ProcessChecker;
 import com.redhat.thermostat.common.utils.LoggingUtils;
+import com.redhat.thermostat.vm.decompiler.communication.InstallDecompilerAgentImpl;
 
 import com.sun.tools.attach.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.jboss.byteman.agent.install.Install;
 
 /**
  *
@@ -34,28 +32,34 @@ public class AgentLoader {
     private final AgentLoader.AgentInstallHelper installer;
     private final ProcessChecker processChecker;
     private final AgentIPCService ipcService;
+    static final String LOCALHOST = "localhost";
+
     private static final String AGENT_LOADED_PROPERTY = "com.redhat.decompiler.thermostat.loaded";
     private static final String AGENT_PORT_PROPERTY = "com.redhat.decompiler.thermostat.port";
     private static final String IPC_CONFIG_NAME_PROPERTY = "com.redhat.decompiler.thermostat.ipcConfig";
     private static final String HELPER_SOCKET_NAME_PROPERTY = "com.redhat.decompiler.thermostat.socketName";
+    private static final String AGENT_HOME_SYSTEM_PROP = "com.redhat.decompiler.thermostat.home";
+    private static final String DECOMPILER_HOME_ENV_VARIABLE = "DECOMPILER_HOME";
+    private static final String DECOMPILER_PREFIX = "com.redhat.decompiler.thermostat";
 
     AgentLoader(AgentLoader.AgentInstallHelper installer, ProcessChecker processChecker, AgentIPCService ipcService) {
         this.installer = installer;
         this.processChecker = processChecker;
         this.ipcService = ipcService;
     }
-     AgentLoader(AgentIPCService ipcProps) {
+
+    AgentLoader(AgentIPCService ipcProps) {
         this(new AgentInstallHelper(), new ProcessChecker(), ipcProps);
     }
 
-    public AgentInfo attach(String vmId, int pid, String agentId) throws Exception {
+    public AgentInfo attach(String vmId, int pid, String agentId) {
         int port = findPort();
         logger.finest("Attempting to attach decompiler agent for VM '" + pid + "' on port '" + port + "'");
         try {
             VmSocketIdentifier sockIdentifier = new VmSocketIdentifier(vmId, pid, agentId);
             String[] installProps = buildInstallProps(sockIdentifier, port);
             boolean agentJarToBootClassPath = true;
-            AgentLoader.InstallResult result = installer.install(Integer.toString(pid), agentJarToBootClassPath, false, null, port, installProps);
+            AgentLoader.InstallResult result = installer.install(Integer.toString(pid), agentJarToBootClassPath, false, LOCALHOST, port, installProps);
             int actualPort = result.getPort();
             // Port might have changed here if agent rebooted and targed jvm
             // stayed alive
@@ -64,7 +68,7 @@ public class AgentLoader {
             } else {
                 return null;
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IOException e) {
             return failAndLog(e, vmId, port, pid);
         }
     }
@@ -112,13 +116,12 @@ public class AgentLoader {
 
         private static final int UNKNOWN_PORT = -1;
 
-        AgentLoader.InstallResult install(String vmPid, boolean addToBoot, boolean setPolicy, String hostname, int port, String[] properties) 
-                 {
-            String propVal = Install.getSystemProperty(vmPid, AGENT_LOADED_PROPERTY);
+        AgentLoader.InstallResult install(String vmPid, boolean addToBoot, boolean setPolicy, String hostname, int port, String[] properties) {
+            String propVal = InstallDecompilerAgentImpl.getSystemProperty(vmPid, AGENT_LOADED_PROPERTY);
             boolean loaded = Boolean.parseBoolean(propVal);
             if (!loaded) {
                 try {
-                    Install.install(vmPid, addToBoot, hostname, port, properties);
+                    InstallDecompilerAgentImpl.install(vmPid, addToBoot, hostname, port, properties);
                 } catch (IllegalArgumentException ex) {
                     Logger.getLogger(AgentLoader.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException ex) {
@@ -133,8 +136,8 @@ public class AgentLoader {
                 return new AgentLoader.InstallResult(port, false);
             } else {
                 try {
-                    int oldPort = Integer.parseInt(Install.getSystemProperty(vmPid, AGENT_PORT_PROPERTY));
-                    logger.finest("VM (pid: " + vmPid + "): Not installing agent since one is already attached on port "+ oldPort);
+                    int oldPort = Integer.parseInt(InstallDecompilerAgentImpl.getSystemProperty(vmPid, AGENT_PORT_PROPERTY));
+                    logger.finest("VM (pid: " + vmPid + "): Not installing agent since one is already attached on port " + oldPort);
                     return new AgentLoader.InstallResult(oldPort, true);
                 } catch (NumberFormatException e) {
                     logger.info("VM (pid: " + vmPid + "): Has an agent already attached, but it wasn't thermostat that attached it");
@@ -143,9 +146,8 @@ public class AgentLoader {
             }
         }
     }
-    
-    
-     private String[] buildInstallProps(VmSocketIdentifier sockIdentifier, int port) throws IOException {
+
+    private String[] buildInstallProps(VmSocketIdentifier sockIdentifier, int port) throws IOException {
         List<String> properties = new ArrayList<>();
         String socketNameProperty = HELPER_SOCKET_NAME_PROPERTY + "=" + sockIdentifier.getName();
         File ipcConfig = ipcService.getConfigurationFile();
@@ -154,6 +156,6 @@ public class AgentLoader {
         properties.add(socketNameProperty);
         properties.add(ipcSocketDirProperty);
         properties.add(agentPortProperty);
-        return properties.toArray(new String[] {});
+        return properties.toArray(new String[]{});
     }
 }
