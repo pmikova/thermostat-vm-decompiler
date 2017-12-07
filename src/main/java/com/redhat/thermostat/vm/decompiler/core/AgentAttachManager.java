@@ -105,6 +105,7 @@ public class AgentAttachManager {
         VmDecompilerStatus status = new VmDecompilerStatus(writerId.getWriterID());
         status.setListenPort(info.getAgentListenPort());
         status.setVmId(vmId.get());
+        status.setTimeStamp(System.currentTimeMillis());
         vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
         return status;
     }
