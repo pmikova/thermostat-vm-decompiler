@@ -68,23 +68,23 @@ public class VmDecompilerStatus extends BasePojo implements TimeStampedPojo {
     }
 
     @Persist
-    public void setClassNames(String[] names) {
-        loadedClassNames = names;
+    public void setLoadedClassNames(String[] loadedClassNames) {
+        this.loadedClassNames = loadedClassNames;
 
     }
 
     @Persist
-    public byte[] getClassBytes() {
+    public byte[] getLoadedClassBytes() {
         return loadedClassBytes;
     }
 
     @Persist
-    public String[] getClassNames() {
+    public String[] getLoadedClassNames() {
         return loadedClassNames;
     }
 
     @Persist
-    public void addClassBytes(byte[] value) {
+    public void setLoadedClassBytes(byte[] value) {
         loadedClassBytes = value;
     }
 
