@@ -79,7 +79,8 @@ public class InstallDecompilerAgentImpl {
     private static final String IPC_CONFIG_NAME_PROPERTY = "com.redhat.decompiler.thermostat.ipcConfig";
     private static final String HELPER_SOCKET_NAME_PROPERTY = "com.redhat.decompiler.thermostat.socketName";
     private static final String AGENT_HOME_SYSTEM_PROP = "com.redhat.decompiler.thermostat.home";
-    private static final String DECOMPILER_HOME_ENV_VARIABLE = "DECOMPILER_HOME";
+    private static final String DECOMPILER_HOME_ENV_VARIABLE = "THERMOSTAT_DECOMPILER_AGENT_HOME";
+    private static final String DECOMPILER_JAR_ENV_VARIABLE = "THERMOSTAT_DECOMPILER_AGENT_JAR";
     private static final String DECOMPILER_PREFIX = "com.redhat.decompiler.thermostat";
 
     private String agentJar;
@@ -129,7 +130,7 @@ public class InstallDecompilerAgentImpl {
             }
         }
     }
-    private String DECOMPILER_HOME_SYSTEM_PROP = DECOMPILER_PREFIX + "home";
+    private String DECOMPILER_HOME_SYSTEM_PROP = DECOMPILER_PREFIX + ".home";
     private String DECOMPILER_AGENT_NAME = "nativeagent";
     private String DECOMPILER_AGENT_BASE_DIR = "target";
 
@@ -325,10 +326,20 @@ public class InstallDecompilerAgentImpl {
     {
         // use the current system property in preference to the environment setting
 
+        String bmJar = System.getenv(DECOMPILER_JAR_ENV_VARIABLE);
+        try {
+            JarFile jarFile = new JarFile(bmJar);
+            agentJar=System.getenv(DECOMPILER_JAR_ENV_VARIABLE);
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+            //throw new IOException("Install file : " + DECOMPILER_JAR_ENV_VARIABLE + ".jar is not a valid jar file", e);
+        }
+    
         String bmHome = System.getProperty(DECOMPILER_HOME_SYSTEM_PROP);
         if (bmHome == null || bmHome.length() == 0) {
             bmHome = System.getenv(DECOMPILER_HOME_ENV_VARIABLE);
-        }
+        }      
         if (bmHome == null || bmHome.length() == 0 || bmHome.equals("null")) {
             agentJar = locateJarFromClasspath(DECOMPILER_AGENT_NAME);
             /*if(useModuleLoader) {
