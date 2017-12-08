@@ -48,7 +48,7 @@ public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
             + "'" + Key.VM_ID.getName() + "' = ?s , "
             + "'" + Key.TIMESTAMP.getName() + "' = ?l , "
             + "'" + PORT.getName() + "' = ?i , "
-            + "'" + LOADED_CLASS_NAMES + "' = ?s[ WHERE "
+            + "'" + LOADED_CLASS_NAMES.getName() + "' = ?s[ WHERE "
             + "'" + Key.VM_ID.getName() + "' = ?s";
 
     @Reference
