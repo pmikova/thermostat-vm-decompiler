@@ -89,7 +89,7 @@ public class Communicate {
             while(line == null){
                 str.append(line);
             }
-        } else if (line.equals("CLASS")) {
+        } else if (line.equals("CLASSES")) {
             while (line == null) {
                 str.append(line);
                 str.append(";");
