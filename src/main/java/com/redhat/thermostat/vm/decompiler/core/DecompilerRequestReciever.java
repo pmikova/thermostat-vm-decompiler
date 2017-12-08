@@ -80,17 +80,17 @@ public class DecompilerRequestReciever implements RequestReceiver {
         attachManager.setWriterId(null);
     }
     
-    protected void bindVmBytemanDao(VmDecompilerDAO dao) {
-        this.vmDecompilerDao = dao;
-        attachManager.setVmDecompilerDao(dao);
+    protected void bindVmDecompilerDao(VmDecompilerDAO vmDecompilerDao) {
+        this.vmDecompilerDao = vmDecompilerDao;
+        attachManager.setVmDecompilerDao(vmDecompilerDao);
     }
     
-    protected void unbindVmBytemanDao(VmDecompilerDAO dao) {
+    protected void unbindVmDecompilerDao(VmDecompilerDAO vmDecompilerDao) {
         this.vmDecompilerDao = null;
         attachManager.setVmDecompilerDao(null);
     }
     
-    
+   
     protected void bindAgentIpcService(AgentIPCService ipcService) {
         IPCManager ipcEndpointsManager = new IPCManager(ipcService);
         attachManager.setIpcManager(ipcEndpointsManager);
@@ -114,7 +114,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
    
     //END DS
     @Override
-    public Response receive(Request request) {        
+    public Response receive(Request request) { 
         String vmId = request.getParameter(AgentRequestAction.VM_ID_PARAM_NAME);
         String actionStr = request.getParameter(AgentRequestAction.ACTION_PARAM_NAME);
         String portStr = request.getParameter(AgentRequestAction.LISTEN_PORT_PARAM_NAME);
@@ -206,14 +206,14 @@ public class DecompilerRequestReciever implements RequestReceiver {
             logger.log(Level.WARNING, "Failed to call Agent.");
             return ERROR_RESPONSE;
         }
-        CallNativeAgent nativeAgent = new CallNativeAgent(vmPid);
+        CallNativeAgent nativeAgent = new CallNativeAgent(actualListenPort);
         try {
             String classes = nativeAgent.submitRequest("CLASSES");
             
             if (classes == "ERROR") {
                 return ERROR_RESPONSE;
             }
-           String[] arrayOfClasses = parseClasses(classes);;
+           String[] arrayOfClasses = parseClasses(classes);
             VmDecompilerStatus status = new VmDecompilerStatus(writerId.getWriterID());
             status.setListenPort(listenPort);
             status.setTimeStamp(System.currentTimeMillis());
