@@ -15,9 +15,11 @@ import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.jar.JarFile;
 import org.jboss.byteman.agent.install.VMInfo;
 
 public class InstallDecompilerAgentImpl {
@@ -94,16 +96,9 @@ public class InstallDecompilerAgentImpl {
     /**
      * Check for system property com.redhat.decompiler.thermostat.home in
      * preference to the environment setting DECOMPILER_HOME and use it to
-     * identify the location of the byteman agent jar.
+     * identify the location of the decompiler agent jar.
      */
-    private void locateAgent() throws IOException {
-        // use the current system property in preference to the environment setting
 
-        this.agentJar = System.getProperty(AGENT_HOME_SYSTEM_PROP);
-        if (agentJar == null || agentJar.length() == 0) {
-            agentJar = System.getenv(DECOMPILER_HOME_ENV_VARIABLE);
-        }
-    }
 
     public static boolean isAgentAttached(String id) {
         String value = getProperty(id, AGENT_LOADED_PROPERTY);
@@ -134,6 +129,9 @@ public class InstallDecompilerAgentImpl {
             }
         }
     }
+    private String DECOMPILER_HOME_SYSTEM_PROP = DECOMPILER_PREFIX + "home";
+    private String DECOMPILER_AGENT_NAME = "nativeagent";
+    private String DECOMPILER_AGENT_BASE_DIR = "target";
 
     private InstallDecompilerAgentImpl(String pid, boolean addToBoot, boolean setPolicy,
             boolean useModuleLoader, String host, int port, String[] properties) {
@@ -244,7 +242,7 @@ public class InstallDecompilerAgentImpl {
             if (props != null) {
                 agentOptions += props;
             }
-            vm.loadAgent("/home/pmikova/NetBeansProjects/JavaAgent/target/JavaAgent-1.0.0-SNAPSHOT.jar",
+            vm.loadAgent(agentJar,
                      agentOptions);
             
         } finally {
@@ -319,6 +317,99 @@ public class InstallDecompilerAgentImpl {
 
         // we actually allow any string for the process id as we can look up by name also
         id = nextArg;
+    }
+
+    
+    
+    private void locateAgent() throws IOException
+    {
+        // use the current system property in preference to the environment setting
+
+        String bmHome = System.getProperty(DECOMPILER_HOME_SYSTEM_PROP);
+        if (bmHome == null || bmHome.length() == 0) {
+            bmHome = System.getenv(DECOMPILER_HOME_ENV_VARIABLE);
+        }
+        if (bmHome == null || bmHome.length() == 0 || bmHome.equals("null")) {
+            agentJar = locateJarFromClasspath(DECOMPILER_AGENT_NAME);
+            /*if(useModuleLoader) {
+                String BYTEMAN_MODULES_PLUGIN_NAME;
+                modulePluginJar = locateJarFromClasspath(BYTEMAN_MODULES_PLUGIN_NAME);
+            }*/
+        } else {
+            agentJar = locateJarFromHomeDir(bmHome, DECOMPILER_AGENT_BASE_DIR, DECOMPILER_AGENT_NAME);
+            /*if (useModuleLoader) {
+                modulePluginJar = locateJarFromHomeDir(bmHome, BYTEMAN_MODULES_PLUGIN_BASE_DIR, BYTEMAN_MODULES_PLUGIN_NAME);
+            }*/
+        }
+    }
+
+    public String locateJarFromHomeDir(String bmHome, String baseDir, String libName) throws IOException
+    {
+        if (bmHome.endsWith("/")) {
+            bmHome = bmHome.substring(0, bmHome.length() - 1);
+        }
+
+        File bmHomeFile = new File(bmHome);
+        if (!bmHomeFile.isDirectory()) {
+            throw new FileNotFoundException("Install : " + bmHome + " does not identify a directory");
+        }
+
+        File bmLibFile = new File(bmHome + "/" + baseDir);
+        if (!bmLibFile.isDirectory()) {
+            throw new FileNotFoundException("Install : " + bmHome + "/" + baseDir + " does not identify a directory");
+        }
+
+        try {
+            JarFile jarFile = new JarFile(bmHome + "/" + baseDir + "/" + libName + ".jar");
+        } catch (IOException e) {
+            throw new IOException("Install : " + bmHome + "/" + baseDir + "/" + libName + ".jar is not a valid jar file", e);
+        }
+
+        return bmHome + "/" + baseDir + "/" + libName + ".jar";
+    }
+
+    public String locateJarFromClasspath(String libName) throws IOException
+    {
+        String javaClassPath = System.getProperty("java.class.path");
+        String pathSepr = System.getProperty("path.separator");
+        String fileSepr = System.getProperty("file.separator");
+        final String EXTENSION = ".jar";
+        final int EXTENSION_LEN = EXTENSION.length();
+        final int NAME_LEN = libName.length();
+        final String VERSION_PATTERN = "-[0-9]+\\.[0-9]+\\.[0-9]+.*";
+
+        String[] elements = javaClassPath.split(pathSepr);
+        String jarname = null;
+        for (String element : elements) {
+            if (element.endsWith(EXTENSION)) {
+                String name = element.substring(0, element.length() - EXTENSION_LEN);
+                int lastFileSepr = name.lastIndexOf(fileSepr);
+                if (lastFileSepr >= 0) {
+                    name= name.substring(lastFileSepr+1);
+                }
+                if (name.startsWith(libName)) {
+                    if (name.length() == NAME_LEN) {
+                        jarname = element;
+                        break;
+                    }
+                    //  could be a contender --  check it only has a standard version suffix
+                    // i.e. "-NN.NN.NN-ANANAN"
+                    String version = name.substring(NAME_LEN);
+                    if (version.matches(VERSION_PATTERN)) {
+                        jarname =  element;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (jarname != null) {
+            System.out.println(libName + " jar is " + jarname);
+            return jarname;
+        } else {
+            throw new  FileNotFoundException("Install : cannot find " + libName + " jar please set environment variable " 
+                    + DECOMPILER_HOME_ENV_VARIABLE + " or System property " + DECOMPILER_HOME_SYSTEM_PROP);
+        }
     }
 
 }
