@@ -113,7 +113,7 @@ public class VmDecompilerInformationController implements InformationServiceCont
         if (success) {
             VmId vmId = new VmId(vm.getVmId());
             VmDecompilerStatus vmStatus = vmDecompilerDao.getVmDecompilerStatus(vmId);
-            String[] classes = vmStatus.getClassNames();
+            String[] classes = vmStatus.getLoadedClassNames();
             view.reloadClassList(classes);
         } else {
             view.handleError(new LocalizedString(listener.getErrorMessage()));
