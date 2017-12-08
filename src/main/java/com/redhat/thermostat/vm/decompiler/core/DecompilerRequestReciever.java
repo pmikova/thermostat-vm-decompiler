@@ -183,7 +183,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
             status.setListenPort(listenPort);
             status.setTimeStamp(System.currentTimeMillis());
             status.setVmId(vmId.get());
-            status.addClassBytes(byteArray);
+            status.setLoadedClassBytes(byteArray);
             vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
             
         } catch (Exception ex) {
@@ -218,7 +218,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
             status.setListenPort(listenPort);
             status.setTimeStamp(System.currentTimeMillis());
             status.setVmId(vmId.get());
-            status.setClassNames(arrayOfClasses);
+            status.setLoadedClassNames(arrayOfClasses);
             vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
 
         } catch (Exception ex) {
