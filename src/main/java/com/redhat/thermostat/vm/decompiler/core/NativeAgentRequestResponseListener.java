@@ -8,6 +8,7 @@ package com.redhat.thermostat.vm.decompiler.core;
 import com.redhat.thermostat.common.command.Request;
 import com.redhat.thermostat.common.command.Response;
 import com.redhat.thermostat.shared.locale.Translate;
+import com.redhat.thermostat.vm.decompiler.swing.LocaleResources;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -19,6 +20,7 @@ public class NativeAgentRequestResponseListener implements com.redhat.thermostat
     private final CountDownLatch latch;
     private String errorMsg = "";
     private boolean isError = false;
+    private static final Translate<LocaleResources> t = LocaleResources.createLocalizer();
     
     public NativeAgentRequestResponseListener(CountDownLatch latch) {
         this.latch = latch;
