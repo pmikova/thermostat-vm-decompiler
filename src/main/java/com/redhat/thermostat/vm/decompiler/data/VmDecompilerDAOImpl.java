@@ -32,8 +32,8 @@ import org.apache.felix.scr.annotations.Service;
 public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
 
     static final Key<Integer> PORT = new Key<>("listenPort");
-    static final Key<String[]> LOADED_CLASS_NAMES = new Key<>("loadedClasses");
-    //static final Key<String[]> LOADED_BYTES= new Key<>("loadedBytes");
+    static final Key<String[]> LOADED_CLASS_NAMES = new Key<>("loadedClassNames");
+    //static final Key<String[]> LOADED_BYTES= new Key<>("loadedClassBytes");
 
     public static final Category<VmDecompilerStatus> VM_DECOMPILER_STATUS_CATEGORY = new Category<>(
             "vm-decompiler-status",
@@ -99,7 +99,7 @@ public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
                 preparedStatement.setString(1, status.getVmId());
                 preparedStatement.setLong(2, status.getTimeStamp());
                 preparedStatement.setInt(3, status.getListenPort());
-                preparedStatement.setStringList(4, status.getClassNames());
+                preparedStatement.setStringList(4, status.getLoadedClassNames());
                 preparedStatement.setString(5, status.getVmId());
                 return preparedStatement;
             }
