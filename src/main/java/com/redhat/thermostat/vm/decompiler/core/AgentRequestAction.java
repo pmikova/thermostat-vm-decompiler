@@ -18,7 +18,7 @@ public class AgentRequestAction {
 
     public static enum RequestAction {
         CLASSES(0),
-        BYTES(1),;
+        BYTES(1);
 
         private int intVal;
 
