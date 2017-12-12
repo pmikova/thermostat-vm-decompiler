@@ -131,7 +131,7 @@ public class InstallDecompilerAgentImpl {
         }
     }
     private String DECOMPILER_HOME_SYSTEM_PROP = DECOMPILER_PREFIX + ".home";
-    private String DECOMPILER_AGENT_NAME = "nativeagent";
+    private String DECOMPILER_AGENT_NAME = "decompiler-agent-1.0.0";
     private String DECOMPILER_AGENT_BASE_DIR = "target";
 
     private InstallDecompilerAgentImpl(String pid, boolean addToBoot, boolean setPolicy,
@@ -331,10 +331,7 @@ public class InstallDecompilerAgentImpl {
             JarFile jarFile = new JarFile(bmJar);
             agentJar=System.getenv(DECOMPILER_JAR_ENV_VARIABLE);
             return;
-        } catch (IOException e) {
-            e.printStackTrace();
-            //throw new IOException("Install file : " + DECOMPILER_JAR_ENV_VARIABLE + ".jar is not a valid jar file", e);
-        }
+        } catch (IOException e) {}
     
         String bmHome = System.getProperty(DECOMPILER_HOME_SYSTEM_PROP);
         if (bmHome == null || bmHome.length() == 0) {
