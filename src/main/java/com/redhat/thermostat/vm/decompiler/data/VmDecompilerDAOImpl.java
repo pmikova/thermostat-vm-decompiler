@@ -33,12 +33,12 @@ public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
 
     static final Key<Integer> PORT = new Key<>("listenPort");
     static final Key<String[]> LOADED_CLASS_NAMES = new Key<>("loadedClassNames");
-    //static final Key<String[]> LOADED_BYTES= new Key<>("loadedClassBytes");
+    static final Key<String[]> LOADED_CLASS_BYTES= new Key<>("loadedClassBytes");
 
     public static final Category<VmDecompilerStatus> VM_DECOMPILER_STATUS_CATEGORY = new Category<>(
             "vm-decompiler-status",
             VmDecompilerStatus.class,
-            Key.AGENT_ID, Key.VM_ID, Key.TIMESTAMP, PORT, LOADED_CLASS_NAMES);
+            Key.AGENT_ID, Key.VM_ID, Key.TIMESTAMP, PORT, LOADED_CLASS_NAMES, LOADED_CLASS_BYTES);
 
     public static final String QUERY_VM_DECOMPILER_STATUS = "QUERY " + VM_DECOMPILER_STATUS_CATEGORY.getName()
             + " WHERE '" + Key.VM_ID.getName() + "' = ?s LIMIT 1";
@@ -48,7 +48,8 @@ public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
             + "'" + Key.VM_ID.getName() + "' = ?s , "
             + "'" + Key.TIMESTAMP.getName() + "' = ?l , "
             + "'" + PORT.getName() + "' = ?i , "
-            + "'" + LOADED_CLASS_NAMES.getName() + "' = ?s[ WHERE "
+            + "'" + LOADED_CLASS_NAMES.getName() + "' = ?s[ , "
+            + "'" + LOADED_CLASS_BYTES.getName() + "' = ?s WHERE "
             + "'" + Key.VM_ID.getName() + "' = ?s";
 
     @Reference
@@ -100,7 +101,8 @@ public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
                 preparedStatement.setLong(2, status.getTimeStamp());
                 preparedStatement.setInt(3, status.getListenPort());
                 preparedStatement.setStringList(4, status.getLoadedClassNames());
-                preparedStatement.setString(5, status.getVmId());
+                preparedStatement.setString(5, status.getLoadedClassBytes());
+                preparedStatement.setString(6, status.getVmId());
                 return preparedStatement;
             }
         });
