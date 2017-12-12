@@ -21,18 +21,18 @@ public class VmDecompilerStatus extends BasePojo implements TimeStampedPojo {
     private long timestamp;
     private int listenPort;
     String[] loadedClassNames;
-    byte[] loadedClassBytes;
+    String loadedClassBytes;
 
     public VmDecompilerStatus(String writerId) {
         super(writerId);
         loadedClassNames = new String[]{};
-        loadedClassBytes = new byte[]{};
+        loadedClassBytes = "";
     }
 
     public VmDecompilerStatus() {
         super(null);
         loadedClassNames = new String[]{};
-        loadedClassBytes = new byte[]{};
+        loadedClassBytes = "";
 
     }
 
@@ -74,7 +74,7 @@ public class VmDecompilerStatus extends BasePojo implements TimeStampedPojo {
     }
 
     @Persist
-    public byte[] getLoadedClassBytes() {
+    public String getLoadedClassBytes() {
         return loadedClassBytes;
     }
 
@@ -84,7 +84,7 @@ public class VmDecompilerStatus extends BasePojo implements TimeStampedPojo {
     }
 
     @Persist
-    public void setLoadedClassBytes(byte[] value) {
+    public void setLoadedClassBytes(String value) {
         loadedClassBytes = value;
     }
 
