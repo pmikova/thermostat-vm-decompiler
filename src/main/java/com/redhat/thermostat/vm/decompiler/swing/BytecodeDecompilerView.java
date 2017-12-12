@@ -1,17 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.redhat.thermostat.vm.decompiler.swing;
-
-/**
- *
- * @author pmikova
- */
-
-
-//import com.redhat.thermostat.client.swing.internal.views.SwingVmInformationViewProvider;
 
 import com.redhat.thermostat.client.core.views.BasicView;
 import com.redhat.thermostat.client.core.views.UIComponent;
@@ -52,18 +40,15 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
     private JTextArea byteCodeArea;
     private HeaderPanel mainContainer;
 
-
     public BytecodeDecompilerView() {
         mainContainer = new HeaderPanel(translateResources.localize(LocaleResources.DECOMPILER_HEADER_TITLE));
         guiMainFrame = new JPanel();
         mainContainer.add(guiMainFrame, BorderLayout.CENTER);
         guiMainFrame.setLayout(new BorderLayout());
 
-        
         listOfClasses = new JList<>();
         listOfClasses.setFixedCellHeight(20);
         listOfClasses.setListData(new String[]{"Click button above marked", "refresh loaded class list", "in order to start."});
-
         listOfClasses.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -90,9 +75,9 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
         leftMainPanel = new JPanel();
         leftMainPanel.setLayout(new BorderLayout());
         leftMainPanel.setBorder(new EtchedBorder());
-        
+
         JPanel topButtonPanel = new JPanel();
-        
+
         rightMainPanel = new JPanel();
         rightMainPanel.setLayout(new BorderLayout());
         rightMainPanel.setBorder(new EtchedBorder());
@@ -105,8 +90,8 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
 
         leftMainPanel.add(listOfClasses);
         rightMainPanel.add(byteCodeArea);
-        JSplitPane pane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, 
-                                  leftMainPanel, rightMainPanel );
+        JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                leftScrollPanel, rightScrollPanel);
 
         guiMainFrame.add(topButtonPanel, BorderLayout.NORTH);
         guiMainFrame.add(pane, BorderLayout.CENTER);
@@ -115,18 +100,18 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
 
     }
 
-    private <T extends Enum<?>> void fireAction(final T action, final java.util.List<com.redhat.thermostat.common.ActionListener<T>> listeners, String className) {
+    private <T extends Enum<?>> void fireAction(final T action, final java.util.List<com.redhat.thermostat.common.ActionListener<T>> listeners, final String className) {
         new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
                 try {
-                    com.redhat.thermostat.common.ActionEvent<T> event = new com.redhat.thermostat.common.ActionEvent<>(this, action);
+                    com.redhat.thermostat.common.ActionEvent<T> event = new com.redhat.thermostat.vm.decompiler.swing.PassNameEvent(this, action, className);
                     for (com.redhat.thermostat.common.ActionListener<T> listener : listeners) {
-                        
+
                         listener.actionPerformed(event);
                     }
                 } catch (Throwable t) {
-                    //logger.log(Level.INFO, t.getMessage(), t);
+                    // log exception
                 }
                 return null;
             }
@@ -143,8 +128,8 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
         });
 
     }
-    
-    public void reloadTextField(String decompiledClass){
+
+    public void reloadTextField(String decompiledClass) {
         final String data = decompiledClass;
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -154,52 +139,34 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
         });
     }
 
-       @Override
+    @Override
     public Component getUiComponent() {
         return mainContainer;
     }
-// allows us to register listeners
-    public enum DoActionClasses {
+
+    public static enum DoActionClasses {
         CLASSES,
-        
-        
     }
     
-    public enum DoActionBytes{
-        BYTES,
+    public void addDoClassesActionListener(com.redhat.thermostat.common.ActionListener<DoActionClasses> listener) {
+        doListeners.add(listener);
     }
-        
-    public abstract class GetBytesActionEventActionListener implements com.redhat.thermostat.common.ActionListener<DoActionBytes> {
-        String eventClassName;
 
-        public GetBytesActionEventActionListener() {
-            String eventClassName = "";
-        }
-        
-               
-        public String getEventClassName(){
-            return eventClassName;
-        }
-        
-        public void setEventClassName(String name){
-            this.eventClassName = name; 
-        } 
-        
+    public enum DoActionBytes {
+        BYTES
     }
 
     public void addDoBytesActionListener(com.redhat.thermostat.common.ActionListener<DoActionBytes> listener) {
         doBytesListeners.add(listener);
     }
-    public void addDoClassesActionListener(com.redhat.thermostat.common.ActionListener<DoActionClasses> listener) {
-        doListeners.add(listener);
-    }
 
-    public void handleError(final LocalizedString message) {
+
+    public void handleError(final LocalizedString msg) {
         SwingUtilities.invokeLater(new Runnable() {
 
             @Override
             public void run() {
-                JOptionPane.showMessageDialog(getUiComponent().getParent(), message.getContents(), " ", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(getUiComponent().getParent(), msg.getContents(), " ", JOptionPane.WARNING_MESSAGE);
             }
 
         });
