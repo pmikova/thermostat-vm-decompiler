@@ -9,11 +9,6 @@ import com.redhat.thermostat.common.command.Request;
 import com.redhat.thermostat.storage.model.VmInfo;
 import java.net.InetSocketAddress;
 
-/**
- *
- * @author pmikova
- *
- */
 public class AgentRequestAction {
 
     public static enum RequestAction {
@@ -34,7 +29,7 @@ public class AgentRequestAction {
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("Unknown action: " + act);
             }
-            switch(action) {
+            switch (action) {
                 case 0:
                     return CLASSES;
                 case 1:
@@ -60,7 +55,7 @@ public class AgentRequestAction {
     public static final int NOT_ATTACHED_PORT = -1;
     public static final String CLASS_TO_DECOMPILE_NAME = "class-to-decompile";
     private static final String CMD_CHANN_ACTION_NAME = "vm-decompiler-get-bytecode";
-    
+
     private static final String RECEIVER = "com.redhat.thermostat.vm.decompiler.core.DecompilerRequestReciever";
 
     public static Request create(InetSocketAddress address, VmInfo vmInfo, RequestAction action, int listenPort, String name) {

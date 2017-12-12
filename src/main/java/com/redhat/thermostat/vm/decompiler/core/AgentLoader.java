@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.redhat.thermostat.vm.decompiler.core;
 
 import com.redhat.thermostat.agent.ipc.server.AgentIPCService;
@@ -11,7 +6,6 @@ import com.redhat.thermostat.common.utils.LoggingUtils;
 import com.redhat.thermostat.vm.decompiler.communication.InstallDecompilerAgentImpl;
 
 import com.sun.tools.attach.*;
-import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -26,38 +20,35 @@ import java.util.logging.Logger;
 public class AgentLoader {
 
     private static final Logger logger = LoggingUtils.getLogger(AgentLoader.class);
-    private static final int PORT_MIN = 13300;
-    private static final int MAX_PORT_SLOTS = 300;
+    private static final int PORT_MIN = 10101;
+    private static final int MAX_PORT_SLOTS = 200;
     private static final int PORT_MAX = PORT_MIN + MAX_PORT_SLOTS;
     private final AgentLoader.AgentInstallHelper installer;
     private final ProcessChecker processChecker;
-    private final AgentIPCService ipcService;
     static final String LOCALHOST = "localhost";
 
     private static final String AGENT_LOADED_PROPERTY = "com.redhat.decompiler.thermostat.loaded";
     private static final String AGENT_PORT_PROPERTY = "com.redhat.decompiler.thermostat.port";
-    private static final String IPC_CONFIG_NAME_PROPERTY = "com.redhat.decompiler.thermostat.ipcConfig";
     private static final String HELPER_SOCKET_NAME_PROPERTY = "com.redhat.decompiler.thermostat.socketName";
     private static final String AGENT_HOME_SYSTEM_PROP = "com.redhat.decompiler.thermostat.home";
     private static final String DECOMPILER_HOME_ENV_VARIABLE = "DECOMPILER_HOME";
     private static final String DECOMPILER_PREFIX = "com.redhat.decompiler.thermostat";
 
-    AgentLoader(AgentLoader.AgentInstallHelper installer, ProcessChecker processChecker, AgentIPCService ipcService) {
+    AgentLoader(AgentLoader.AgentInstallHelper installer, ProcessChecker processChecker) {
         this.installer = installer;
         this.processChecker = processChecker;
-        this.ipcService = ipcService;
     }
 
     AgentLoader(AgentIPCService ipcProps) {
-        this(new AgentInstallHelper(), new ProcessChecker(), ipcProps);
+        this(new AgentInstallHelper(), new ProcessChecker());
     }
 
     public AgentInfo attach(String vmId, int pid, String agentId) {
         int port = findPort();
         logger.finest("Attempting to attach decompiler agent for VM '" + pid + "' on port '" + port + "'");
         try {
-            VmSocketIdentifier sockIdentifier = new VmSocketIdentifier(vmId, pid, agentId);
-            String[] installProps = buildInstallProps(sockIdentifier, port);
+            //VmSocketIdentifier sockIdentifier = new VmSocketIdentifier(vmId, pid, agentId);
+            String[] installProps = buildInstallProps(port);
             boolean agentJarToBootClassPath = true;
             AgentLoader.InstallResult result = installer.install(Integer.toString(pid), agentJarToBootClassPath, false, LOCALHOST, port, installProps);
             int actualPort = result.getPort();
@@ -147,14 +138,14 @@ public class AgentLoader {
         }
     }
 
-    private String[] buildInstallProps(VmSocketIdentifier sockIdentifier, int port) throws IOException {
+    private String[] buildInstallProps(int port) throws IOException {
         List<String> properties = new ArrayList<>();
-        String socketNameProperty = HELPER_SOCKET_NAME_PROPERTY + "=" + sockIdentifier.getName();
-        File ipcConfig = ipcService.getConfigurationFile();
-        String ipcSocketDirProperty = IPC_CONFIG_NAME_PROPERTY + "=" + ipcConfig.getAbsolutePath();
+        //String socketNameProperty = HELPER_SOCKET_NAME_PROPERTY + "=" + sockIdentifier.getName();
+        //File ipcConfig = ipcService.getConfigurationFile();
+        //String ipcSocketDirProperty = IPC_CONFIG_NAME_PROPERTY + "=" + ipcConfig.getAbsolutePath();
         String agentPortProperty = AGENT_PORT_PROPERTY + "=" + Integer.valueOf(port).toString();
-        properties.add(socketNameProperty);
-        properties.add(ipcSocketDirProperty);
+        //properties.add(socketNameProperty);
+        //properties.add(ipcSocketDirProperty);
         properties.add(agentPortProperty);
         return properties.toArray(new String[]{});
     }

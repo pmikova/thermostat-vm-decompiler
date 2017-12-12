@@ -64,7 +64,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
     
     
     public DecompilerRequestReciever(AgentAttachManager attachManager) {
-        this.attachManager = new AgentAttachManager();
+        this.attachManager = attachManager;
     }
 
     // DS METHODS
@@ -92,14 +92,11 @@ public class DecompilerRequestReciever implements RequestReceiver {
     
    
     protected void bindAgentIpcService(AgentIPCService ipcService) {
-        IPCManager ipcEndpointsManager = new IPCManager(ipcService);
-        attachManager.setIpcManager(ipcEndpointsManager);
         AgentLoader agentLoader = new AgentLoader(ipcService);
         attachManager.setAttacher(agentLoader);
     }
     
     protected void unbindAgentIpcService(AgentIPCService ipcService) {
-        attachManager.setIpcManager(null);
         attachManager.setAttacher(null);
     }
     

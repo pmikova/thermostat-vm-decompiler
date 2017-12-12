@@ -76,8 +76,6 @@ public class InstallDecompilerAgentImpl {
 
     private static final String AGENT_LOADED_PROPERTY = "com.redhat.decompiler.thermostat.loaded";
     private static final String AGENT_PORT_PROPERTY = "com.redhat.decompiler.thermostat.port";
-    private static final String IPC_CONFIG_NAME_PROPERTY = "com.redhat.decompiler.thermostat.ipcConfig";
-    private static final String HELPER_SOCKET_NAME_PROPERTY = "com.redhat.decompiler.thermostat.socketName";
     private static final String AGENT_HOME_SYSTEM_PROP = "com.redhat.decompiler.thermostat.home";
     private static final String DECOMPILER_HOME_ENV_VARIABLE = "THERMOSTAT_DECOMPILER_AGENT_HOME";
     private static final String DECOMPILER_JAR_ENV_VARIABLE = "THERMOSTAT_DECOMPILER_AGENT_JAR";
