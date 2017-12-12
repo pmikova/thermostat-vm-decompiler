@@ -7,7 +7,7 @@ package com.redhat.thermostat.vm.decompiler.core;
 
 import com.redhat.thermostat.agent.command.RequestReceiver;
 import com.redhat.thermostat.agent.ipc.server.AgentIPCService;
-import com.redhat.thermostat.vm.decompiler.communication.CallNativeAgent;
+import com.redhat.thermostat.vm.decompiler.communication.CallDecompilerAgent;
 import com.redhat.thermostat.common.utils.LoggingUtils;
 import com.redhat.thermostat.common.command.Request;
 import com.redhat.thermostat.common.command.Response;
@@ -171,19 +171,18 @@ public class DecompilerRequestReciever implements RequestReceiver {
             logger.log(Level.WARNING, "Failed to attach agent.");
             return ERROR_RESPONSE;
         }
-        CallNativeAgent nativeAgent = new CallNativeAgent(vmPid);
+        CallDecompilerAgent nativeAgent = new CallDecompilerAgent(actualListenPort);
         try {
             String bytes = nativeAgent.submitRequest("BYTES\n" + className);
             if (bytes == "ERROR") {
                 return ERROR_RESPONSE;
 
             }
-            byte[] byteArray = parseBytes(bytes);
             VmDecompilerStatus status = new VmDecompilerStatus(writerId.getWriterID());
-            status.setListenPort(listenPort);
+            status.setListenPort(actualListenPort);
             status.setTimeStamp(System.currentTimeMillis());
             status.setVmId(vmId.get());
-            status.setLoadedClassBytes(byteArray);
+            status.setLoadedClassBytes(bytes);
             vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
             
         } catch (Exception ex) {
@@ -202,12 +201,13 @@ public class DecompilerRequestReciever implements RequestReceiver {
             return ERROR_RESPONSE;
         }
                 
-        if (actualListenPort == NOT_ATTACHED) {  
+        if (actualListenPort == NOT_ATTACHED) { 
             logger.log(Level.WARNING, "Failed to call Agent.");
             return ERROR_RESPONSE;
         }
-        CallNativeAgent nativeAgent = new CallNativeAgent(actualListenPort);
+        
         try {
+            CallDecompilerAgent nativeAgent = new CallDecompilerAgent(actualListenPort);
             String classes = nativeAgent.submitRequest("CLASSES");
             
             if (classes == "ERROR") {
@@ -215,13 +215,14 @@ public class DecompilerRequestReciever implements RequestReceiver {
             }
            String[] arrayOfClasses = parseClasses(classes);
             VmDecompilerStatus status = new VmDecompilerStatus(writerId.getWriterID());
-            status.setListenPort(listenPort);
+            status.setListenPort(actualListenPort);
             status.setTimeStamp(System.currentTimeMillis());
             status.setVmId(vmId.get());
             status.setLoadedClassNames(arrayOfClasses);
             vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
 
         } catch (Exception ex) {
+            ex.printStackTrace();
             return ERROR_RESPONSE;
         }
         return OK_RESPONSE;
@@ -243,15 +244,10 @@ public class DecompilerRequestReciever implements RequestReceiver {
     }
 
     private String[] parseClasses(String classes) throws Exception {
-
         String[] array = classes.split(";");
         return array;
     }
-    
-    private byte[] parseBytes(String bytes) {
-        byte[] decoded = Base64.getDecoder().decode(bytes);
-        return decoded;
-                }
+
 
 
 
