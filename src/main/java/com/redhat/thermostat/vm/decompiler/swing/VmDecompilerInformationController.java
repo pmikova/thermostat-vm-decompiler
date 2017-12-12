@@ -5,7 +5,6 @@
  */
 package com.redhat.thermostat.vm.decompiler.swing;
 
-
 import com.redhat.thermostat.storage.core.VmId;
 import com.redhat.thermostat.storage.core.VmRef;
 import com.redhat.thermostat.storage.model.VmInfo;
@@ -23,7 +22,6 @@ import com.redhat.thermostat.common.ActionListener;
 import com.redhat.thermostat.shared.locale.Translate;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAO;
 import com.redhat.thermostat.vm.decompiler.core.VmDecompilerStatus;
 import java.util.concurrent.TimeUnit;
@@ -36,10 +34,10 @@ import com.redhat.thermostat.vm.decompiler.core.NativeAgentRequestResponseListen
 import com.redhat.thermostat.vm.decompiler.swing.BytecodeDecompilerView.DoActionBytes;
 import com.redhat.thermostat.vm.decompiler.swing.BytecodeDecompilerView.DoActionClasses;
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Base64;
 import java.util.stream.Collectors;
-
-
 
 /**
  *
@@ -81,31 +79,28 @@ public class VmDecompilerInformationController implements InformationServiceCont
                         loadClassNames();
                         break;
                     default:
-                        
+                        throw new AssertionError("Invalid action event: " + id);
+
                 }
             }
 
         });
 
-        view.addDoBytesActionListener(view.new GetBytesActionEventActionListener() {
+        view.addDoBytesActionListener(new ActionListener<DoActionBytes>(){
             @Override
             public void actionPerformed(ActionEvent<DoActionBytes> actionEvent) {
-                DoActionBytes id = actionEvent.getActionId();
-                switch (id) {
-                    case BYTES:
-                    loadClassBytecode(eventClassName);
-                
-                    default:
-                    throw new AssertionError("Invalid action event: " + id);
+                //DoActionBytes id = actionEvent.getActionId();
+                PassNameEvent<DoActionBytes> ae = (PassNameEvent<DoActionBytes> )actionEvent;
+                //switch (id) {
+                    //case BYTES:
+                        loadClassBytecode(ae.getClassName());
+                    //default:
+                        //throw new AssertionError("Invalid action event: " + id);
                 }
-                
-            }
-           
-        }
-        );}
-
+            //}
+            });
     
-
+    }
     private NativeAgentRequestResponseListener loadClassNames() {
         Request request = createRequest("", RequestAction.CLASSES);
         NativeAgentRequestResponseListener listener = submitRequest(request);
@@ -121,7 +116,7 @@ public class VmDecompilerInformationController implements InformationServiceCont
         return listener;
     }
 
-    private NativeAgentRequestResponseListener loadClassBytecode(String name) {
+    private NativeAgentRequestResponseListener loadClassBytecode(String name) {   
         Request request = createRequest(name, RequestAction.BYTES);
         NativeAgentRequestResponseListener listener = submitRequest(request);
         String decompiledClass = "";
@@ -130,10 +125,12 @@ public class VmDecompilerInformationController implements InformationServiceCont
 
             VmId vmId = new VmId(vm.getVmId());
             VmDecompilerStatus vmStatus = vmDecompilerDao.getVmDecompilerStatus(vmId);
-            //byte[] bytes = vmStatus.getClassBytes(name);
-            byte[] bytes = new byte[]{};
+            String decompiledClassInString = vmStatus.getLoadedClassBytes();
+
+            String bytesInString = vmStatus.getLoadedClassBytes();
+            byte[] bytes = parseBytes(bytesInString);
             try {
-                String path = bytesToFile(name, bytes);
+                String path = bytesToFile("temporary-byte-file", bytes);
                 Process proc = Runtime.getRuntime().exec("java -jar " + decompilerPath + " " + path);
                 InputStream in = proc.getInputStream();
                 decompiledClass = new BufferedReader(new InputStreamReader(in))
@@ -142,7 +139,7 @@ public class VmDecompilerInformationController implements InformationServiceCont
             } catch (Exception e) {
                 view.handleError(new LocalizedString(listener.getErrorMessage()));
             }
-
+             
             view.reloadTextField(decompiledClass);
         } else {
             view.handleError(new LocalizedString(listener.getErrorMessage()));
@@ -152,16 +149,24 @@ public class VmDecompilerInformationController implements InformationServiceCont
     }
 
     private Request createRequest(String className, RequestAction action) {
+        System.out.println("init of creation");
         VmId vmId = new VmId(vm.getVmId());
+        System.out.println("1");
         VmInfo vmInfo = createVmInfo(vm);
-
+        System.out.println("2");
         VmDecompilerStatus status = vmDecompilerDao.getVmDecompilerStatus(vmId);
+        System.out.println("3");
         int listenPort = AgentRequestAction.NOT_ATTACHED_PORT;
         if (status != null) {
+            System.out.println(status.getListenPort());
+            System.out.println(status.toString());
             listenPort = status.getListenPort();
         }
-        
-        InetSocketAddress address = agentInfoDao.getAgentInformation(vm.getHostRef()).getRequestQueueAddress();
+        System.out.println("4");
+        AgentInformation agentInfo = agentInfoDao.getAgentInformation(new AgentId(vm.getHostRef().getAgentId()));
+        System.out.println("5");
+        InetSocketAddress address = agentInfo.getRequestQueueAddress();
+        System.out.println("6");
         Request request;
         if (action == RequestAction.CLASSES) {
             request = AgentRequestAction.create(address, vmInfo, action, listenPort);
@@ -170,6 +175,7 @@ public class VmDecompilerInformationController implements InformationServiceCont
         } else {
             throw new AssertionError("Unknown action: " + action);
         }
+        System.out.println("7");
         return request;
     }
 
@@ -185,14 +191,18 @@ public class VmDecompilerInformationController implements InformationServiceCont
     private NativeAgentRequestResponseListener submitRequest(Request request) {
         CountDownLatch latch = new CountDownLatch(1);
         NativeAgentRequestResponseListener listener = new NativeAgentRequestResponseListener(latch);
+        System.out.println("listener created");
         request.addListener(listener);
+        System.out.println("added");
         requestQueue.putRequest(request);
+        System.out.println("request put");
         try {
             // wait for request to finish
-            latch.await(5, TimeUnit.SECONDS);
+            latch.await(500000, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             // ignore
         }
+        System.out.println("b4 return");
         return listener;
     }
 
@@ -215,5 +225,8 @@ public class VmDecompilerInformationController implements InformationServiceCont
         return translateResources.localize(LocaleResources.VM_DECOMPILER_TAB_NAME);
     }
 
-
+    private byte[] parseBytes(String bytes) {
+        byte[] decoded = Base64.getDecoder().decode(bytes);
+        return decoded;
+    }
 }
