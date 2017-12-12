@@ -11,23 +11,23 @@ import java.io.PrintStream;
  *
  * @author pmikova
  */
-public class CallNativeAgent {
+public class CallDecompilerAgent {
     
     
     public static final String DEFAULT_ADDRESS = "localhost";
-    public static final int DEFAULT_PORT= 9091;
+    public static final int DEFAULT_PORT= 5395;
     
     private final int port;
     private final String address;
 
     private PrintStream out;
     
-    public CallNativeAgent(int port) {
+    public CallDecompilerAgent(int port) {
         this(DEFAULT_ADDRESS, port, System.out);
     }
     
     
-    public CallNativeAgent(String address, int port, PrintStream out) {
+    public CallDecompilerAgent(String address, int port, PrintStream out) {
         if (address == null) {
             address = DEFAULT_ADDRESS;
         }
@@ -45,26 +45,18 @@ public class CallNativeAgent {
         this.out = out;
     }
     
-        /**
-     * Submits the generic request string to the Byteman agent for processing.
-     *
-     * @param request
-     *            the request to submit
-     *
-     * @return the response that the Byteman agent replied with
-     *
-     * @throws Exception
-     *             if the request failed
-     */
-    public String submitRequest(String request) throws Exception {
-        Communicate comm = new Communicate(this.address, this.port);
+    public String submitRequest(final String request) throws Exception {
+        final Communicate comm = new Communicate(this.address, this.port);
         try {
-            comm.print(request);
+            comm.println(request);
             String results = comm.readResponse();
             return results;
-        } finally {
+        }catch(Exception ex){
+            ex.printStackTrace();
+            return null;
+        }finally {
             comm.close();
         }
-    }
     
+    }
 }
