@@ -1,7 +1,7 @@
 # thermostat-vm-decompiler
 Runtime decompiler Thermostat plugin
 
-This plugin is developed in cooperation with Thermostat team and intention to once become part of Thermostat. For it's correct run, it needs Thermostat 1.99.12 version or higher. Lower versions were not tested and some of the APIs used are not supported in Thermostat 1.6.
+This plugin is developed in cooperation with Thermostat team and intention to once become part of Thermostat. For it's correct run, it needs Thermostat 1.99.12 version or higher. Lower versions were not tested and some of the APIs used are definitely not supported in Thermostat 1.6.
 
 This plugin is able to use existing decompilers to decompile bytecode loaded in a running JVM. It can list all classes loaded in the JVM and then extract and decompile the bytes back to source code. The quality of the decompilation depends heavily on the used decompiler. This decompiler can be used on any JVM-based language, if there is correct decompiler loaded.
 
