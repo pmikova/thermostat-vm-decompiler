@@ -1,4 +1,3 @@
-
 package com.redhat.thermostat.vm.decompiler.swing;
 
 import com.redhat.thermostat.client.core.views.BasicView;
@@ -25,6 +24,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.border.EtchedBorder;
 
+/**
+ * Class that creates the view of tab for thermostat GUI
+ */
 public class BytecodeDecompilerView extends BasicView implements SwingComponent, UIComponent {
 
     private JPanel guiMainFrame;
@@ -40,6 +42,9 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
     private JTextArea byteCodeArea;
     private HeaderPanel mainContainer;
 
+    /**
+     * Constructor creates the graphics and adds the action listeners.
+     */
     public BytecodeDecompilerView() {
         mainContainer = new HeaderPanel(translateResources.localize(LocaleResources.DECOMPILER_HEADER_TITLE));
         guiMainFrame = new JPanel();
@@ -118,6 +123,10 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
         }.execute();
     }
 
+    /**
+     * Sets the class list into the JList.
+     * @param classesToReload array of classes to give into JList
+     */
     public void reloadClassList(String[] classesToReload) {
         final String[] data = classesToReload;
         SwingUtilities.invokeLater(new Runnable() {
@@ -129,6 +138,10 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
 
     }
 
+    /**
+     * Sets the decompiled code into JTextArea
+     * @param decompiledClass String of source code of decompiler class
+     */
     public void reloadTextField(String decompiledClass) {
         final String data = decompiledClass;
         SwingUtilities.invokeLater(new Runnable() {
@@ -139,6 +152,10 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
         });
     }
 
+    /**
+     * Returns the panel containing the view
+     * @return
+     */
     @Override
     public Component getUiComponent() {
         return mainContainer;
@@ -147,11 +164,11 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
     public static enum DoActionClasses {
         CLASSES,
     }
-    
+
     public void addDoClassesActionListener(com.redhat.thermostat.common.ActionListener<DoActionClasses> listener) {
         doListeners.add(listener);
     }
-
+ 
     public enum DoActionBytes {
         BYTES
     }
@@ -160,7 +177,10 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
         doBytesListeners.add(listener);
     }
 
-
+    /**
+     * Creates a warning table in case of error.
+     * @param msg localized message
+     */
     public void handleError(final LocalizedString msg) {
         SwingUtilities.invokeLater(new Runnable() {
 

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.redhat.thermostat.vm.decompiler.swing;
 
 import com.redhat.thermostat.client.command.RequestQueue;
@@ -15,7 +10,6 @@ import com.redhat.thermostat.storage.core.VmRef;
 import com.redhat.thermostat.storage.dao.AgentInfoDAO;
 import com.redhat.thermostat.storage.dao.VmInfoDAO;
 import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAO;
-import com.redhat.thermostat.vm.decompiler.internal.SwingVmDecompilerViewProvider;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.felix.scr.annotations.Component;
@@ -25,18 +19,20 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 
 /**
- *
- * @author pmikova
+ * This implementation of information service provides methods for
+ * creating decompiler tab for each VM, where available.
  */
 @Component
 @Service(value = InformationService.class)
 @Properties({
     @Property(name = "GenericClassName",
-              value = "com.redhat.thermostat.storage.core.VmRef"),
+            value = "com.redhat.thermostat.storage.core.VmRef")
+    ,
     @Property(name = "com.redhat.thermostat.client.core.InformationService.serviceID",
             value = "com.redhat.thermostat.vm.decompiler.swing.VmDecompilerInformationService")
 })
 public class VmDecompilerInformationService implements InformationService<VmRef> {
+
     @Reference
     private AgentInfoDAO agentInfoDao;
     @Reference
@@ -55,7 +51,6 @@ public class VmDecompilerInformationService implements InformationService<VmRef>
 
     @Override
     public Filter<VmRef> getFilter() {
-        // dead vms can be useful also
         return new AllPassFilter<>();
     }
 
