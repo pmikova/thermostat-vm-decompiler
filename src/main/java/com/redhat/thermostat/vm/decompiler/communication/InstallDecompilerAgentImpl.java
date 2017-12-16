@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.redhat.thermostat.vm.decompiler.communication;
 
 /**
@@ -22,8 +17,26 @@ import java.util.List;
 import java.util.jar.JarFile;
 import org.jboss.byteman.agent.install.VMInfo;
 
+/**
+ *
+ * @author pmikova
+ */
 public class InstallDecompilerAgentImpl {
 
+    /**
+     *
+     * @param pid
+     * @param addToBoot
+     * @param host
+     * @param port
+     * @param properties
+     * @throws IllegalArgumentException
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws AttachNotSupportedException
+     * @throws AgentLoadException
+     * @throws AgentInitializationException
+     */
     public static void install(String pid, boolean addToBoot, String host, int port, String[] properties)
             throws IllegalArgumentException, FileNotFoundException,
             IOException, AttachNotSupportedException,
@@ -31,6 +44,21 @@ public class InstallDecompilerAgentImpl {
         install(pid, addToBoot, false, host, port, properties);
     }
 
+    /**
+     *
+     * @param pid
+     * @param addToBoot
+     * @param setPolicy
+     * @param host
+     * @param port
+     * @param properties
+     * @throws IllegalArgumentException
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws AttachNotSupportedException
+     * @throws AgentLoadException
+     * @throws AgentInitializationException
+     */
     public static void install(String pid, boolean addToBoot, boolean setPolicy, String host, int port, String[] properties)
             throws IllegalArgumentException, FileNotFoundException,
             IOException, AttachNotSupportedException,
@@ -38,6 +66,22 @@ public class InstallDecompilerAgentImpl {
         install(pid, addToBoot, setPolicy, false, host, port, properties);
     }
 
+    /**
+     *
+     * @param pid
+     * @param addToBoot
+     * @param setPolicy
+     * @param useModuleLoader
+     * @param host
+     * @param port
+     * @param properties
+     * @throws IllegalArgumentException
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws AttachNotSupportedException
+     * @throws AgentLoadException
+     * @throws AgentInitializationException
+     */
     public static void install(String pid, boolean addToBoot, boolean setPolicy, boolean useModuleLoader, String host, int port, String[] properties)
             throws IllegalArgumentException, FileNotFoundException,
             IOException, AttachNotSupportedException,
@@ -63,6 +107,10 @@ public class InstallDecompilerAgentImpl {
         install.injectAgent();
     }
 
+    /**
+     *
+     * @return
+     */
     public static VMInfo[] availableVMs() {
         List<VirtualMachineDescriptor> vmds = VirtualMachine.list();
         VMInfo[] vmInfo = new VMInfo[vmds.size()];
@@ -96,6 +144,8 @@ public class InstallDecompilerAgentImpl {
      * Check for system property com.redhat.decompiler.thermostat.home in
      * preference to the environment setting DECOMPILER_HOME and use it to
      * identify the location of the decompiler agent jar.
+     * @param id
+     * @return 
      */
 
 
@@ -104,6 +154,12 @@ public class InstallDecompilerAgentImpl {
         return Boolean.parseBoolean(value);
     }
 
+    /**
+     *
+     * @param id
+     * @param property
+     * @return
+     */
     public static String getSystemProperty(String id, String property) {
         return getProperty(id, property);
     }
@@ -337,18 +393,20 @@ public class InstallDecompilerAgentImpl {
         }      
         if (bmHome == null || bmHome.length() == 0 || bmHome.equals("null")) {
             agentJar = locateJarFromClasspath(DECOMPILER_AGENT_NAME);
-            /*if(useModuleLoader) {
-                String BYTEMAN_MODULES_PLUGIN_NAME;
-                modulePluginJar = locateJarFromClasspath(BYTEMAN_MODULES_PLUGIN_NAME);
-            }*/
         } else {
             agentJar = locateJarFromHomeDir(bmHome, DECOMPILER_AGENT_BASE_DIR, DECOMPILER_AGENT_NAME);
-            /*if (useModuleLoader) {
-                modulePluginJar = locateJarFromHomeDir(bmHome, BYTEMAN_MODULES_PLUGIN_BASE_DIR, BYTEMAN_MODULES_PLUGIN_NAME);
-            }*/
+
         }
     }
 
+    /**
+     *
+     * @param bmHome
+     * @param baseDir
+     * @param libName
+     * @return
+     * @throws IOException
+     */
     public String locateJarFromHomeDir(String bmHome, String baseDir, String libName) throws IOException
     {
         if (bmHome.endsWith("/")) {
@@ -374,6 +432,12 @@ public class InstallDecompilerAgentImpl {
         return bmHome + "/" + baseDir + "/" + libName + ".jar";
     }
 
+    /**
+     *
+     * @param libName
+     * @return
+     * @throws IOException
+     */
     public String locateJarFromClasspath(String libName) throws IOException
     {
         String javaClassPath = System.getProperty("java.class.path");
