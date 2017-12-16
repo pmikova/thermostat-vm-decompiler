@@ -9,7 +9,6 @@ import com.redhat.thermostat.storage.core.VmId;
 import com.redhat.thermostat.storage.dao.AbstractDao;
 import com.redhat.thermostat.storage.dao.AbstractDaoQuery;
 import com.redhat.thermostat.storage.dao.AbstractDaoStatement;
-//import com.redhat.thermostat.vm.decompiler.core.StoreJvmInfo;
 import com.redhat.thermostat.vm.decompiler.core.VmDecompilerStatus;
 import java.util.List;
 import java.util.logging.Logger;
