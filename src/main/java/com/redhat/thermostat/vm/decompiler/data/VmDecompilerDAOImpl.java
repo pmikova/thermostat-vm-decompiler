@@ -1,7 +1,37 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2012-2017 Red Hat, Inc.
+ *
+ * This file is part of Thermostat.
+ *
+ * Thermostat is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published
+ * by the Free Software Foundation; either version 2, or (at your
+ * option) any later version.
+ *
+ * Thermostat is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Thermostat; see the file COPYING.  If not see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Linking this code with other modules is making a combined work
+ * based on this code.  Thus, the terms and conditions of the GNU
+ * General Public License cover the whole combination.
+ *
+ * As a special exception, the copyright holders of this code give
+ * you permission to link this code with independent modules to
+ * produce an executable, regardless of the license terms of these
+ * independent modules, and to copy and distribute the resulting
+ * executable under terms of your choice, provided that you also
+ * meet, for each linked independent module, the terms and conditions
+ * of the license of that module.  An independent module is a module
+ * which is not derived from or based on this code.  If you modify
+ * this code, you may extend this exception to your version of the
+ * library, but you are not obligated to do so.  If you do not wish
+ * to do so, delete this exception statement from your version.
  */
 package com.redhat.thermostat.vm.decompiler.data;
 
@@ -24,16 +54,16 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 
 /**
- *
- * @author pmikova
+ * Implementation of decompiler DAO to be used to store decompiler status in
+ * Thermostat storage.
  */
 @Component
 @Service(value = VmDecompilerDAO.class)
-public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
+public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO {
 
     static final Key<Integer> PORT = new Key<>("listenPort");
     static final Key<String[]> LOADED_CLASS_NAMES = new Key<>("loadedClassNames");
-    static final Key<String[]> LOADED_CLASS_BYTES= new Key<>("loadedClassBytes");
+    static final Key<String[]> LOADED_CLASS_BYTES = new Key<>("loadedClassBytes");
 
     public static final Category<VmDecompilerStatus> VM_DECOMPILER_STATUS_CATEGORY = new Category<>(
             "vm-decompiler-status",
@@ -55,8 +85,10 @@ public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
     @Reference
     private Storage storage;
 
+    /*
+    * Default constructor for declarative services
+    */
     public VmDecompilerDAOImpl() {
-        // Default constructor for DS
     }
 
     @Activate
@@ -64,16 +96,16 @@ public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
         storage.registerCategory(VM_DECOMPILER_STATUS_CATEGORY);
     }
 
-    public VmDecompilerDAOImpl(Storage storage) {
-        this.storage = storage;
-
-    }
-
     @Override
     protected Logger getLogger() {
         return LoggingUtils.getLogger(VmDecompilerDAOImpl.class);
     }
 
+    /**
+     * This method creates prepared statement for query and executes it.
+     * @param vmId unique parameter to find the status
+     * @return VmDecompiler status with given vmId
+     */
     @Override
     public VmDecompilerStatus getVmDecompilerStatus(final VmId vmId) {
         List<VmDecompilerStatus> result = executeQuery(new AbstractDaoQuery<VmDecompilerStatus>(storage, VM_DECOMPILER_STATUS_CATEGORY, QUERY_VM_DECOMPILER_STATUS) {
@@ -90,6 +122,10 @@ public class VmDecompilerDAOImpl extends AbstractDao implements VmDecompilerDAO{
         return result.get(0);
     }
 
+    /**
+     * This method should creates prepared statement and executes it 
+     * @param status VmDecompilerStatus to replace
+     */
     @Override
     public void addOrReplaceVmDecompilerStatus(final VmDecompilerStatus status) {
         executeStatement(new AbstractDaoStatement<VmDecompilerStatus>(storage, VM_DECOMPILER_STATUS_CATEGORY, REPLACE_OR_ADD_STATUS_DESC) {
