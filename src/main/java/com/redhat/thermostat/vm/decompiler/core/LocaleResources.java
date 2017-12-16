@@ -1,15 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.redhat.thermostat.vm.decompiler.core;
 
 import com.redhat.thermostat.shared.locale.Translate;
 
 /**
- *
- * @author pmikova
+ * Localized messages for error messages while processing the request.
  */
 public enum LocaleResources {
     

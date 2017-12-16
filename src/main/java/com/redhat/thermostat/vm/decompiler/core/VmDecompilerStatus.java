@@ -1,19 +1,14 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.redhat.thermostat.vm.decompiler.core;
 
-/**
- *
- * @author pmikova
- */
 import com.redhat.thermostat.storage.core.Entity;
 import com.redhat.thermostat.storage.core.Persist;
 import com.redhat.thermostat.storage.model.BasePojo;
 import com.redhat.thermostat.storage.model.TimeStampedPojo;
 
+/**
+ * This class stores all information about the state of decompiler plugin on 
+ * each VM.
+ */
 @Entity
 public class VmDecompilerStatus extends BasePojo implements TimeStampedPojo {
 
@@ -29,6 +24,9 @@ public class VmDecompilerStatus extends BasePojo implements TimeStampedPojo {
         loadedClassBytes = "";
     }
 
+    /**
+     * We need to initiate these arguments, so they are never null.
+     */
     public VmDecompilerStatus() {
         super(null);
         loadedClassNames = new String[]{};
@@ -60,7 +58,7 @@ public class VmDecompilerStatus extends BasePojo implements TimeStampedPojo {
     public void setTimeStamp(long timestamp) {
         this.timestamp = timestamp;
     }
-
+    
     @Persist
     @Override
     public long getTimeStamp() {

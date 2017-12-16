@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.redhat.thermostat.vm.decompiler.core;
 
 import com.redhat.thermostat.agent.command.RequestReceiver;
@@ -20,7 +15,6 @@ import com.redhat.thermostat.storage.core.VmId;
 import com.redhat.thermostat.storage.core.WriterID;
 import com.redhat.thermostat.vm.decompiler.core.AgentRequestAction.RequestAction;
 import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAO;
-import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.felix.scr.annotations.Component;
@@ -29,8 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 
 /**
- *
- * @author pmikova
+ * This class manages the requests that are put in queue by the controller.
  */
 @Component
 @Service(value = RequestReceiver.class)
@@ -39,79 +32,78 @@ import org.apache.felix.scr.annotations.Service;
 public class DecompilerRequestReciever implements RequestReceiver {
 
     private static final Logger logger = LoggingUtils.getLogger(DecompilerRequestReciever.class);
-    
+
     private final AgentAttachManager attachManager;
-    
+
     private static final Response ERROR_RESPONSE = new Response(ResponseType.ERROR);
     private static final Response OK_RESPONSE = new Response(ResponseType.OK);
     private static final int NOT_ATTACHED = -1;
 
     @Reference
     private VmDecompilerDAO vmDecompilerDao;
-    
+
     @Reference
     private WriterID writerId;
-    
+
     @Reference
     private AgentIPCService agentIpcService;
-    
+
     @Reference
     private UserNameUtil userNameUtil;
 
     public DecompilerRequestReciever() {
         this(new AgentAttachManager());
     }
-    
-    
+
     public DecompilerRequestReciever(AgentAttachManager attachManager) {
         this.attachManager = attachManager;
     }
 
-    // DS METHODS
- 
-    
     protected void bindWriterId(WriterID writerId) {
         this.writerId = writerId;
         attachManager.setWriterId(writerId);
     }
-    
+
     protected void unbindWriterId(WriterID writerId) {
         this.writerId = null;
         attachManager.setWriterId(null);
     }
-    
+
     protected void bindVmDecompilerDao(VmDecompilerDAO vmDecompilerDao) {
         this.vmDecompilerDao = vmDecompilerDao;
         attachManager.setVmDecompilerDao(vmDecompilerDao);
     }
-    
+
     protected void unbindVmDecompilerDao(VmDecompilerDAO vmDecompilerDao) {
         this.vmDecompilerDao = null;
         attachManager.setVmDecompilerDao(null);
     }
-    
-   
+
     protected void bindAgentIpcService(AgentIPCService ipcService) {
         AgentLoader agentLoader = new AgentLoader(ipcService);
         attachManager.setAttacher(agentLoader);
     }
-    
+
     protected void unbindAgentIpcService(AgentIPCService ipcService) {
         attachManager.setAttacher(null);
     }
-    
+
     protected void bindUserNameUtil(UserNameUtil userNameUtil) {
         ProcessUserInfoBuilder userInfoBuilder = ProcessUserInfoBuilderFactory.createBuilder(new ProcDataSource(), userNameUtil);
         attachManager.setUserInfoBuilder(userInfoBuilder);
     }
-    
+
     protected void unbindUserNameUtil(UserNameUtil userNameUtil) {
         attachManager.setUserInfoBuilder(null);
     }
-   
-    //END DS
+
+    /**
+     * This method is invoked once this receiver gets a request and processes it.
+     * @param request ACTION or BYTES request
+     * @return response: ERROR or OK or AUTH_FAILURE
+     */
     @Override
-    public Response receive(Request request) { 
+    public Response receive(Request request) {
         String vmId = request.getParameter(AgentRequestAction.VM_ID_PARAM_NAME);
         String actionStr = request.getParameter(AgentRequestAction.ACTION_PARAM_NAME);
         String portStr = request.getParameter(AgentRequestAction.LISTEN_PORT_PARAM_NAME);
@@ -123,15 +115,15 @@ public class DecompilerRequestReciever implements RequestReceiver {
         try {
             action = RequestAction.returnAction(actionStr);
         } catch (IllegalArgumentException e) {
-            logger.log(Level.WARNING, "Illegal action received", e);
+            logger.log(Level.WARNING, "Illegal action in request", e);
             return ERROR_RESPONSE;
         }
-        port = tryParseInt(portStr, "Listen port not an integer!");
-        vmPid = tryParseInt(vmPidStr, "VM pid not a number!");
+        port = tryParseInt(portStr, "Listen port is not an integer!");
+        vmPid = tryParseInt(vmPidStr, "VM PID is not a number!");
 
-        logger.fine("Processing request for vmId: " + vmId + ", pid: " + vmPid + ", Action: " + action + ", port: " + portStr);
+        logger.log(Level.FINE, "Processing request. VM ID: " + vmId + ", PID: " + vmPid + ", action: " + action + ", port: " + portStr);
         Response response;
-        switch (action) {            
+        switch (action) {
             case BYTES:
                 String className = request.getParameter(AgentRequestAction.CLASS_TO_DECOMPILE_NAME);
                 response = getByteCodeAction(port, new VmId(vmId), vmPid, className);
@@ -140,7 +132,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
                 response = getAllLoadedClassesAction(port, new VmId(vmId), vmPid);
                 break;
             default:
-                logger.warning("Unknown action: " + action);
+                logger.warning("Unknown action given: " + action);
                 return ERROR_RESPONSE;
         }
         return response;
@@ -151,7 +143,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
         try {
             return Integer.parseInt(intStr);
         } catch (NumberFormatException e) {
-            logger.log(Level.WARNING, msg + " Param was '" + intStr + "'", e);
+            logger.log(Level.WARNING, msg + " Given: " + intStr) ;
             return NOT_ATTACHED;
         }
     }
@@ -168,7 +160,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
             logger.log(Level.WARNING, "Failed to attach agent.");
             return ERROR_RESPONSE;
         }
-        CallDecompilerAgent nativeAgent = new CallDecompilerAgent(actualListenPort);
+        CallDecompilerAgent nativeAgent = new CallDecompilerAgent(actualListenPort, null);
         try {
             String bytes = nativeAgent.submitRequest("BYTES\n" + className);
             if (bytes == "ERROR") {
@@ -181,7 +173,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
             status.setVmId(vmId.get());
             status.setLoadedClassBytes(bytes);
             vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
-            
+
         } catch (Exception ex) {
             return ERROR_RESPONSE;
         }
@@ -197,20 +189,20 @@ public class DecompilerRequestReciever implements RequestReceiver {
         } catch (Exception ex) {
             return ERROR_RESPONSE;
         }
-                
-        if (actualListenPort == NOT_ATTACHED) { 
-            logger.log(Level.WARNING, "Failed to call Agent.");
+
+        if (actualListenPort == NOT_ATTACHED) {
+            logger.log(Level.WARNING, "Failed to call decompiler agent.");
             return ERROR_RESPONSE;
         }
-        
+
         try {
-            CallDecompilerAgent nativeAgent = new CallDecompilerAgent(actualListenPort);
+            CallDecompilerAgent nativeAgent = new CallDecompilerAgent(actualListenPort, null);
             String classes = nativeAgent.submitRequest("CLASSES");
-            
+
             if (classes == "ERROR") {
                 return ERROR_RESPONSE;
             }
-           String[] arrayOfClasses = parseClasses(classes);
+            String[] arrayOfClasses = parseClasses(classes);
             VmDecompilerStatus status = new VmDecompilerStatus(writerId.getWriterID());
             status.setListenPort(actualListenPort);
             status.setTimeStamp(System.currentTimeMillis());
@@ -219,7 +211,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
             vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Exception occured while processing request: " + ex.getMessage());
             return ERROR_RESPONSE;
         }
         return OK_RESPONSE;
@@ -227,7 +219,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
     }
 
     private int checkIfAgentIsLoaded(int port, VmId vmId, int vmPid) {
-        if (port != NOT_ATTACHED){
+        if (port != NOT_ATTACHED) {
             return port;
         }
         int actualListenPort = NOT_ATTACHED;
@@ -235,7 +227,6 @@ public class DecompilerRequestReciever implements RequestReceiver {
         if (status != null) {
             actualListenPort = status.getListenPort();
         }
-        
 
         return actualListenPort;
     }
@@ -244,9 +235,5 @@ public class DecompilerRequestReciever implements RequestReceiver {
         String[] array = classes.split(";");
         return array;
     }
-
-
-
-
 
 }

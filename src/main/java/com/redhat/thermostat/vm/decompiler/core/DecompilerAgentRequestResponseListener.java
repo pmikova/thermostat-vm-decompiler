@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.redhat.thermostat.vm.decompiler.core;
 
 import com.redhat.thermostat.common.command.Request;
@@ -12,20 +7,26 @@ import com.redhat.thermostat.vm.decompiler.swing.LocaleResources;
 import java.util.concurrent.CountDownLatch;
 
 /**
- *
- * @author pmikova
+ * Listener for response of requests. 
+ * Expects only OK, ERROR or AUTH_FAILED in case Thermostat refuses the request.
  */
-public class NativeAgentRequestResponseListener implements com.redhat.thermostat.common.command.RequestResponseListener {
+public class DecompilerAgentRequestResponseListener implements com.redhat.thermostat.common.command.RequestResponseListener {
     
     private final CountDownLatch latch;
     private String errorMsg = "";
     private boolean isError = false;
-    private static final Translate<LocaleResources> t = LocaleResources.createLocalizer();
+    private static final Translate<LocaleResources> translate = LocaleResources.createLocalizer();
     
-    public NativeAgentRequestResponseListener(CountDownLatch latch) {
+    
+    public DecompilerAgentRequestResponseListener(CountDownLatch latch) {
         this.latch = latch;
     }
 
+    /**
+     *  Is invoked once we received a response.
+     * @param request request we put in queue
+     * @param response we got from the agent
+     */
     @Override
     public void fireComplete(Request request, Response response) {
         switch(response.getType()) {

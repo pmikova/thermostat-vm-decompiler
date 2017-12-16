@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.redhat.thermostat.vm.decompiler.core;
 
 import com.redhat.thermostat.common.portability.ProcessUserInfo;
@@ -18,22 +13,20 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Attach manager for agent contains utility methods and information about 
+ * attach.
+ */
 public class AgentAttachManager {
  
-    private static final Logger logger = LoggingUtils.getLogger(AgentAttachManager.class);
-
-  
+    private static final Logger logger = LoggingUtils.getLogger(AgentAttachManager.class); 
     private final FileSystemUtils fsUtils;
     private AgentLoader loader;
     private WriterID writerId;
     private ProcessUserInfoBuilder userInfoBuilder;
-    private AgentInfo agent;
     private VmDecompilerDAO vmDecompilerDao;
 
-    public AgentInfo getAgent(){
-        return this.agent;
-    }
-        
+      
     AgentAttachManager() {
         this.fsUtils = new FileSystemUtils();
     }
@@ -56,23 +49,22 @@ public class AgentAttachManager {
 
     VmDecompilerStatus attachAgentToVm(VmId vmId, int vmPid)  {
         logger.fine("Attaching agent to VM '" + vmPid + "'");
-        // Fail early if we can't determine process owner
         UserPrincipal owner = getUserPrincipalForPid(vmPid);
         if (owner == null) {
             return null;
         }
-        AgentInfo info  = null;
+         int attachedPort = AgentLoader.INVALID_PORT;
         try {
-            info = loader.attach(vmId.get(), vmPid, writerId.getWriterID());
+            attachedPort = loader.attach(vmId.get(), vmPid, writerId.getWriterID());
         } catch (Exception ex) {
             Logger.getLogger(AgentAttachManager.class.getName()).log(Level.SEVERE, null, ex);
         }
-        if (info == null) {
-            logger.warning("Failed to attach agent for VM '" + vmPid + "'. Skipping IPC channel.");
+        if (attachedPort == AgentLoader.INVALID_PORT) {
+            logger.warning("Failed to attach agent for VM '" + vmPid);
             return null;
         }
         VmDecompilerStatus status = new VmDecompilerStatus(writerId.getWriterID());
-        status.setListenPort(info.getAgentListenPort());
+        status.setListenPort(attachedPort);
         status.setVmId(vmId.get());
         status.setTimeStamp(System.currentTimeMillis());
         vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
