@@ -3,7 +3,6 @@ package com.redhat.thermostat.vm.decompiler.core;
 import com.redhat.thermostat.common.command.Request;
 import com.redhat.thermostat.common.command.Response;
 import com.redhat.thermostat.shared.locale.Translate;
-import com.redhat.thermostat.vm.decompiler.swing.LocaleResources;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -32,14 +31,17 @@ public class DecompilerAgentRequestResponseListener implements com.redhat.thermo
         switch(response.getType()) {
         case AUTH_FAILED:
             isError = true;
+            errorMsg = translate.localize(LocaleResources.REQUEST_FAILED_AUTH_ISSUE).getContents();
             break;
         case ERROR:
             isError = true;
+            errorMsg = translate.localize(LocaleResources.REQUEST_FAILED_UNKNOWN_ISSUE).getContents();
             break;
         case OK:
             break;
         default:
             isError = true;
+           errorMsg = translate.localize(LocaleResources.ERROR_UNKNOWN_RESPONSE).getContents();
         }
         latch.countDown();
     }

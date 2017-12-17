@@ -1,10 +1,5 @@
 package com.redhat.thermostat.vm.decompiler.communication;
 
-/**
- * This is byteman's install library copied, with small modifications. This is
- * only provisional with blessings of Andrew Dinn, author of byteman.
- *
- */
 import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
@@ -18,25 +13,17 @@ import java.util.jar.JarFile;
 import org.jboss.byteman.agent.install.VMInfo;
 
 /**
+ * This is byteman's install library copied, with small modifications. This is
+ * done with permission of Andrew Dinn, author of Byteman. For the original
+ * source of this code, please follow links below:
+ * http://byteman.jboss.org/  -- official page
+ * https://github.com/bytemanproject/byteman -- git repository
  *
- * @author pmikova
+ * This is a provisional solution for the attach, while I am trying to create
+ * an abstract library to share some functionality.
  */
 public class InstallDecompilerAgentImpl {
 
-    /**
-     *
-     * @param pid
-     * @param addToBoot
-     * @param host
-     * @param port
-     * @param properties
-     * @throws IllegalArgumentException
-     * @throws FileNotFoundException
-     * @throws IOException
-     * @throws AttachNotSupportedException
-     * @throws AgentLoadException
-     * @throws AgentInitializationException
-     */
     public static void install(String pid, boolean addToBoot, String host, int port, String[] properties)
             throws IllegalArgumentException, FileNotFoundException,
             IOException, AttachNotSupportedException,
@@ -44,21 +31,6 @@ public class InstallDecompilerAgentImpl {
         install(pid, addToBoot, false, host, port, properties);
     }
 
-    /**
-     *
-     * @param pid
-     * @param addToBoot
-     * @param setPolicy
-     * @param host
-     * @param port
-     * @param properties
-     * @throws IllegalArgumentException
-     * @throws FileNotFoundException
-     * @throws IOException
-     * @throws AttachNotSupportedException
-     * @throws AgentLoadException
-     * @throws AgentInitializationException
-     */
     public static void install(String pid, boolean addToBoot, boolean setPolicy, String host, int port, String[] properties)
             throws IllegalArgumentException, FileNotFoundException,
             IOException, AttachNotSupportedException,
@@ -66,22 +38,7 @@ public class InstallDecompilerAgentImpl {
         install(pid, addToBoot, setPolicy, false, host, port, properties);
     }
 
-    /**
-     *
-     * @param pid
-     * @param addToBoot
-     * @param setPolicy
-     * @param useModuleLoader
-     * @param host
-     * @param port
-     * @param properties
-     * @throws IllegalArgumentException
-     * @throws FileNotFoundException
-     * @throws IOException
-     * @throws AttachNotSupportedException
-     * @throws AgentLoadException
-     * @throws AgentInitializationException
-     */
+ 
     public static void install(String pid, boolean addToBoot, boolean setPolicy, boolean useModuleLoader, String host, int port, String[] properties)
             throws IllegalArgumentException, FileNotFoundException,
             IOException, AttachNotSupportedException,
@@ -107,10 +64,7 @@ public class InstallDecompilerAgentImpl {
         install.injectAgent();
     }
 
-    /**
-     *
-     * @return
-     */
+
     public static VMInfo[] availableVMs() {
         List<VirtualMachineDescriptor> vmds = VirtualMachine.list();
         VMInfo[] vmInfo = new VMInfo[vmds.size()];
@@ -122,7 +76,6 @@ public class InstallDecompilerAgentImpl {
         return vmInfo;
     }
 
-    private static final String AGENT_LOADED_PROPERTY = "com.redhat.decompiler.thermostat.loaded";
     private static final String AGENT_PORT_PROPERTY = "com.redhat.decompiler.thermostat.port";
     private static final String AGENT_HOME_SYSTEM_PROP = "com.redhat.decompiler.thermostat.home";
     private static final String DECOMPILER_HOME_ENV_VARIABLE = "THERMOSTAT_DECOMPILER_AGENT_HOME";
@@ -140,26 +93,6 @@ public class InstallDecompilerAgentImpl {
     private String props;
     private VirtualMachine vm;
 
-    /**
-     * Check for system property com.redhat.decompiler.thermostat.home in
-     * preference to the environment setting DECOMPILER_HOME and use it to
-     * identify the location of the decompiler agent jar.
-     * @param id
-     * @return 
-     */
-
-
-    public static boolean isAgentAttached(String id) {
-        String value = getProperty(id, AGENT_LOADED_PROPERTY);
-        return Boolean.parseBoolean(value);
-    }
-
-    /**
-     *
-     * @param id
-     * @param property
-     * @return
-     */
     public static String getSystemProperty(String id, String property) {
         return getProperty(id, property);
     }
@@ -305,6 +238,10 @@ public class InstallDecompilerAgentImpl {
         }
     }
 
+     /**
+     * check the supplied arguments and stash away the relevant data
+     * @param args the value supplied to main
+     */
     private void parseArgs(String[] args) {
         int argCount = args.length;
         int idx = 0;

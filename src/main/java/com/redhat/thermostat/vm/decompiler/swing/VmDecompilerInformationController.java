@@ -147,8 +147,6 @@ public class VmDecompilerInformationController implements InformationServiceCont
         VmDecompilerStatus status = vmDecompilerDao.getVmDecompilerStatus(vmId);
         int listenPort = AgentRequestAction.NOT_ATTACHED_PORT;
         if (status != null) {
-            System.out.println(status.getListenPort());
-            System.out.println(status.toString());
             listenPort = status.getListenPort();
         }
 
