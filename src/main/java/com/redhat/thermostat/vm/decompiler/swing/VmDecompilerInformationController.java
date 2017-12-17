@@ -31,10 +31,7 @@ import com.redhat.thermostat.vm.decompiler.swing.BytecodeDecompilerView.DoAction
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -85,13 +82,14 @@ public class VmDecompilerInformationController implements InformationServiceCont
         view.addDoBytesActionListener(new ActionListener<DoActionBytes>() {
             @Override
             public void actionPerformed(ActionEvent<DoActionBytes> actionEvent) {
-                //DoActionBytes id = actionEvent.getActionId();
+                DoActionBytes id = actionEvent.getActionId();
                 PassNameEvent<DoActionBytes> ae = (PassNameEvent<DoActionBytes>) actionEvent;
-                //switch (id) {
-                //case BYTES:
-                loadClassBytecode(ae.getClassName());
-                //default:
-                //throw new AssertionError("Invalid action event: " + id);
+                switch (id) {
+                    case BYTES:
+                        loadClassBytecode(ae.getClassName());
+                    default:
+                        throw new AssertionError("Invalid action event: " + id);
+                }
             }
         });
 
@@ -104,9 +102,12 @@ public class VmDecompilerInformationController implements InformationServiceCont
         if (success) {
             VmId vmId = new VmId(vm.getVmId());
             VmDecompilerStatus vmStatus = vmDecompilerDao.getVmDecompilerStatus(vmId);
-            String[] classes = vmStatus.getLoadedClassNames();
-            String[] classesArray = checkClasses(classes);
-            view.reloadClassList(classesArray);
+            String [] classes = vmStatus.getLoadedClassNames();
+            while (classes.length == 0) {
+                 vmStatus = vmDecompilerDao.getVmDecompilerStatus(vmId);
+                classes = vmStatus.getLoadedClassNames();
+            }
+            view.reloadClassList(classes);
         } else {
             view.handleError(new LocalizedString(listener.getErrorMessage()));
         }
@@ -121,10 +122,16 @@ public class VmDecompilerInformationController implements InformationServiceCont
         if (success) {
 
             VmId vmId = new VmId(vm.getVmId());
-            VmDecompilerStatus vmStatus = vmDecompilerDao.getVmDecompilerStatus(vmId);
-            String decompiledClassInString = vmStatus.getLoadedClassBytes();
 
+            VmDecompilerStatus vmStatus = vmDecompilerDao.getVmDecompilerStatus(vmId);
+            String expectedClass = "";
+            while (!expectedClass.equals(name)) {     
+                vmStatus = vmDecompilerDao.getVmDecompilerStatus(vmId);
+                expectedClass = vmStatus.getBytesClassName();
+                
+            }
             String bytesInString = vmStatus.getLoadedClassBytes();
+
             byte[] bytes = parseBytes(bytesInString);
             try {
                 String path = bytesToFile("temporary-byte-file", bytes);
@@ -133,10 +140,9 @@ public class VmDecompilerInformationController implements InformationServiceCont
                 decompiledClass = new BufferedReader(new InputStreamReader(in))
                         .lines().collect(Collectors.joining("\n"));;
 
-            } catch (Exception e) {
+            } catch (IOException e) {
                 view.handleError(new LocalizedString(listener.getErrorMessage()));
             }
-
             view.reloadTextField(decompiledClass);
         } else {
             view.handleError(new LocalizedString(listener.getErrorMessage()));
@@ -184,7 +190,7 @@ public class VmDecompilerInformationController implements InformationServiceCont
         requestQueue.putRequest(request);
         // wait for the request processing
         try {
-            latch.await(5, TimeUnit.SECONDS);
+            latch.await(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             // ignore, is not relevant
         }
@@ -220,10 +226,4 @@ public class VmDecompilerInformationController implements InformationServiceCont
         return decoded;
     }
 
-    private String[] checkClasses(String[] classes) {
-        List<String> list = new ArrayList<>(Arrays.asList(classes));
-        list.removeAll(Arrays.asList("", null));
-        return list.toArray(new String[]{});
-       
-    }
 }

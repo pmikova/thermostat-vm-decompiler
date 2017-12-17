@@ -17,11 +17,13 @@ public class VmDecompilerStatus extends BasePojo implements TimeStampedPojo {
     private int listenPort;
     String[] loadedClassNames;
     String loadedClassBytes;
+    String bytesClassName;
 
     public VmDecompilerStatus(String writerId) {
         super(writerId);
-        loadedClassNames = new String[]{};
-        loadedClassBytes = "";
+        this.bytesClassName = "";
+        this.loadedClassBytes = "";
+        this.loadedClassNames = new String[]{};
     }
 
     /**
@@ -29,11 +31,20 @@ public class VmDecompilerStatus extends BasePojo implements TimeStampedPojo {
      */
     public VmDecompilerStatus() {
         super(null);
-        loadedClassNames = new String[]{};
-        loadedClassBytes = "";
+        this.bytesClassName = "";
+        this.loadedClassBytes = "";
+        this.loadedClassNames = new String[]{};
 
     }
-
+    @Persist
+    public String getBytesClassName(){
+        return bytesClassName;
+    }
+    @Persist
+    public void setBytesClassName(String bytesClassName){
+        this.bytesClassName = bytesClassName;
+    }
+    
     @Persist
     public String getVmId() {
         return vmId;

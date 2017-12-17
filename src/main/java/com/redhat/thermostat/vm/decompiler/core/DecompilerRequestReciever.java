@@ -15,6 +15,9 @@ import com.redhat.thermostat.storage.core.VmId;
 import com.redhat.thermostat.storage.core.WriterID;
 import com.redhat.thermostat.vm.decompiler.core.AgentRequestAction.RequestAction;
 import com.redhat.thermostat.vm.decompiler.data.VmDecompilerDAO;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.felix.scr.annotations.Component;
@@ -162,6 +165,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
         }
         CallDecompilerAgent nativeAgent = new CallDecompilerAgent(actualListenPort, null);
         try {
+            System.out.println(className);
             String bytes = nativeAgent.submitRequest("BYTES\n" + className);
             if (bytes == "ERROR") {
                 return ERROR_RESPONSE;
@@ -171,6 +175,7 @@ public class DecompilerRequestReciever implements RequestReceiver {
             status.setListenPort(actualListenPort);
             status.setTimeStamp(System.currentTimeMillis());
             status.setVmId(vmId.get());
+            status.setBytesClassName(className);
             status.setLoadedClassBytes(bytes);
             vmDecompilerDao.addOrReplaceVmDecompilerStatus(status);
 
@@ -233,7 +238,10 @@ public class DecompilerRequestReciever implements RequestReceiver {
 
     private String[] parseClasses(String classes) throws Exception {
         String[] array = classes.split(";");
-        return array;
+        List<String> list = new ArrayList<>(Arrays.asList(array));
+        list.removeAll(Arrays.asList("", null));
+        return list.toArray(new String[]{});    
+
     }
 
 }

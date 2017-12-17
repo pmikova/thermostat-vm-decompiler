@@ -151,7 +151,7 @@ public class BytecodeDecompilerView extends BasicView implements SwingComponent,
             }
         });
     }
-
+   
     /**
      * Returns the panel containing the view
      * @return
