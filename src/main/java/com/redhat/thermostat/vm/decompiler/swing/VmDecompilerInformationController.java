@@ -31,7 +31,10 @@ import com.redhat.thermostat.vm.decompiler.swing.BytecodeDecompilerView.DoAction
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -102,7 +105,8 @@ public class VmDecompilerInformationController implements InformationServiceCont
             VmId vmId = new VmId(vm.getVmId());
             VmDecompilerStatus vmStatus = vmDecompilerDao.getVmDecompilerStatus(vmId);
             String[] classes = vmStatus.getLoadedClassNames();
-            view.reloadClassList(classes);
+            String[] classesArray = checkClasses(classes);
+            view.reloadClassList(classesArray);
         } else {
             view.handleError(new LocalizedString(listener.getErrorMessage()));
         }
@@ -214,5 +218,12 @@ public class VmDecompilerInformationController implements InformationServiceCont
     private byte[] parseBytes(String bytes) {
         byte[] decoded = Base64.getDecoder().decode(bytes);
         return decoded;
+    }
+
+    private String[] checkClasses(String[] classes) {
+        List<String> list = new ArrayList<>(Arrays.asList(classes));
+        list.removeAll(Arrays.asList("", null));
+        return list.toArray(new String[]{});
+       
     }
 }
