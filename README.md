@@ -8,14 +8,20 @@ This plugin is able to use existing decompilers to decompile bytecode loaded in 
 Recommended decompiler for decompiling bytecode back to Java is Proycon decompiler (https://bitbucket.org/mstrobel/procyon/wiki/Java%20Decompiler) as it provides good quality of decompiled code.
 
 How to run the decompiler:
+Check whether you got installed following packages: maven, 
 
-1. Clone and build this decompiler plugin:
+1. You need thermostat built and installed
+ - hg clone http://icedtea.classpath.org/hg/thermostat/
+ - cd thermostat
+ - mvn clean install
+
+2. Clone and build this decompiler plugin:
  - git clone https://github.com/pmikova/thermostat-vm-decompiler
  - cd thermostat-vm-decompiler
  - mvn clean install
  - the decompiler jar should be now in target directory
 
-2. Clone and build decompiler's agent
+3. Clone and build decompiler's agent
  - git clone https://github.com/pmikova/thermostat-decompiler-agent
  - cd thermostat-decompiler-agent
  - mvn clean install
