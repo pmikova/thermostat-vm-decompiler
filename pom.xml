@@ -126,9 +126,5 @@
             <artifactId>byteman-install</artifactId>
             <version>${byteman.version}</version>
         </dependency>
-        <!-- <dependency>
-          <groupId>org.jfree</groupId>
-          <artifactId>jfreechart</artifactId>
-        </dependency>-->
     </dependencies>
 </project>
